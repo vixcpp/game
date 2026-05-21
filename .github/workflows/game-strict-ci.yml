@@ -110,6 +110,7 @@ jobs:
             ../fs \
             ../time \
             ../json \
+            ../utils \
             ../log \
             ../threadpool \
             ../async \
@@ -120,6 +121,7 @@ jobs:
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/fs.git ../fs
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/time.git ../time
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/json.git ../json
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/utils.git ../utils
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/log.git ../log
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/threadpool.git ../threadpool
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" --recurse-submodules https://github.com/vixcpp/async.git ../async
@@ -147,6 +149,7 @@ jobs:
           test -f ../fs/CMakeLists.txt
           test -f ../time/CMakeLists.txt
           test -f ../json/CMakeLists.txt
+          test -f ../utils/CMakeLists.txt
           test -f ../log/CMakeLists.txt
           test -f ../threadpool/CMakeLists.txt
           test -f ../async/CMakeLists.txt
@@ -163,6 +166,7 @@ jobs:
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../fs/include"
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../time/include"
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../json/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../utils/include"
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../log/include"
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../threadpool/include"
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../async/include"
@@ -188,6 +192,8 @@ jobs:
             -DVIX_GAME_FETCH_THREADPOOL=OFF \
             -DVIX_GAME_FETCH_ASYNC=OFF \
             -DVIX_GAME_FETCH_IO=OFF \
+            -DVIX_LOG_FETCH_UTILS=OFF \
+            -DVIX_LOG_BUILD_TESTS=OFF \
             -DVIX_IO_BUILD_TESTS=OFF \
             -DVIX_IO_FETCH_ERROR=OFF \
             -DVIX_TIME_BUILD_TESTS=OFF \
@@ -249,6 +255,7 @@ jobs:
             ../fs \
             ../time \
             ../json \
+            ../utils \
             ../log \
             ../threadpool \
             ../async \
@@ -259,6 +266,7 @@ jobs:
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/fs.git ../fs
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/time.git ../time
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/json.git ../json
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/utils.git ../utils
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/log.git ../log
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/threadpool.git ../threadpool
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" --recurse-submodules https://github.com/vixcpp/async.git ../async
@@ -284,6 +292,7 @@ jobs:
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../fs/include"
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../time/include"
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../json/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../utils/include"
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../log/include"
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../threadpool/include"
           EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../async/include"
@@ -309,6 +318,8 @@ jobs:
             -DVIX_GAME_FETCH_THREADPOOL=OFF \
             -DVIX_GAME_FETCH_ASYNC=OFF \
             -DVIX_GAME_FETCH_IO=OFF \
+            -DVIX_LOG_FETCH_UTILS=OFF \
+            -DVIX_LOG_BUILD_TESTS=OFF \
             -DVIX_IO_BUILD_TESTS=OFF \
             -DVIX_IO_FETCH_ERROR=OFF \
             -DVIX_TIME_BUILD_TESTS=OFF \
@@ -372,6 +383,7 @@ jobs:
             ../fs \
             ../time \
             ../json \
+            ../utils \
             ../log \
             ../threadpool \
             ../async \
@@ -382,10 +394,13 @@ jobs:
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/fs.git ../fs
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/time.git ../time
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/json.git ../json
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/utils.git ../utils
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/log.git ../log
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/threadpool.git ../threadpool
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" --recurse-submodules https://github.com/vixcpp/async.git ../async
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/io.git ../io
+
+          git -C ../async submodule update --init --recursive --depth 1 || true
 
       - name: Prepare Asio for async
         run: |
@@ -413,6 +428,10 @@ jobs:
             -DVIX_GAME_FETCH_THREADPOOL=OFF \
             -DVIX_GAME_FETCH_ASYNC=OFF \
             -DVIX_GAME_FETCH_IO=OFF \
+            -DVIX_LOG_FETCH_UTILS=OFF \
+            -DVIX_LOG_BUILD_TESTS=OFF \
+            -DVIX_IO_BUILD_TESTS=OFF \
+            -DVIX_IO_FETCH_ERROR=OFF \
             -DVIX_TIME_BUILD_TESTS=OFF \
             -DVIX_TIME_BUILD_BENCH=OFF \
             -DVIX_THREADPOOL_BUILD_EXAMPLES=OFF \
@@ -471,6 +490,7 @@ jobs:
             ../fs \
             ../time \
             ../json \
+            ../utils \
             ../log \
             ../threadpool \
             ../async \
@@ -481,10 +501,13 @@ jobs:
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/fs.git ../fs
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/time.git ../time
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/json.git ../json
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/utils.git ../utils
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/log.git ../log
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/threadpool.git ../threadpool
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" --recurse-submodules https://github.com/vixcpp/async.git ../async
           git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/io.git ../io
+
+          git -C ../async submodule update --init --recursive --depth 1 || true
 
       - name: Prepare Asio for async
         run: |
@@ -512,6 +535,10 @@ jobs:
             -DVIX_GAME_FETCH_THREADPOOL=OFF \
             -DVIX_GAME_FETCH_ASYNC=OFF \
             -DVIX_GAME_FETCH_IO=OFF \
+            -DVIX_LOG_FETCH_UTILS=OFF \
+            -DVIX_LOG_BUILD_TESTS=OFF \
+            -DVIX_IO_BUILD_TESTS=OFF \
+            -DVIX_IO_FETCH_ERROR=OFF \
             -DVIX_TIME_BUILD_TESTS=OFF \
             -DVIX_TIME_BUILD_BENCH=OFF \
             -DVIX_THREADPOOL_BUILD_EXAMPLES=OFF \
@@ -537,6 +564,8 @@ jobs:
             -DVIX_GAME_FETCH_THREADPOOL=OFF \
             -DVIX_GAME_FETCH_ASYNC=OFF \
             -DVIX_GAME_FETCH_IO=OFF \
+            -DVIX_LOG_FETCH_UTILS=OFF \
+            -DVIX_LOG_BUILD_TESTS=OFF \
             -DVIX_IO_BUILD_TESTS=OFF \
             -DVIX_IO_FETCH_ERROR=OFF \
             -DVIX_TIME_BUILD_TESTS=OFF \
