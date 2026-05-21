@@ -302,8 +302,8 @@ if (GAME_SOURCES)
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   )
 
-  target_link_libraries(vix_game
-    PRIVATE
+   target_link_libraries(vix_game
+    PUBLIC
       $<BUILD_INTERFACE:${VIX_ERROR_TARGET}>
       $<BUILD_INTERFACE:${VIX_TIME_TARGET}>
       $<BUILD_INTERFACE:${VIX_FS_TARGET}>
@@ -312,10 +312,6 @@ if (GAME_SOURCES)
       $<BUILD_INTERFACE:${VIX_LOG_TARGET}>
       $<BUILD_INTERFACE:${VIX_THREADPOOL_TARGET}>
       $<BUILD_INTERFACE:${VIX_ASYNC_TARGET}>
-  )
-
-  target_link_libraries(vix_game
-    INTERFACE
       $<INSTALL_INTERFACE:vix::error>
       $<INSTALL_INTERFACE:vix::time>
       $<INSTALL_INTERFACE:vix::fs>
