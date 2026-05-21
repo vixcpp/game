@@ -2,8 +2,8 @@
 # Vix.cpp - Game Module Examples
 # ====================================================================
 
-if (NOT TARGET vix::core)
-  message(FATAL_ERROR "[game/examples] vix::core is required because examples use vix::print.")
+if (NOT TARGET vix::io)
+  message(FATAL_ERROR "[game/examples] vix::io is required because examples use vix::print.")
 endif()
 
 set(VIX_GAME_EXAMPLES
@@ -34,7 +34,7 @@ foreach(example_name ${VIX_GAME_EXAMPLES})
   target_link_libraries("${example_target}"
     PRIVATE
       vix::game
-      vix::core
+      vix::io
   )
 
   if (NOT MSVC)

@@ -50,7 +50,7 @@ option(VIX_GAME_FETCH_JSON       "Auto-fetch vix::json if missing" ON)
 option(VIX_GAME_FETCH_LOG        "Auto-fetch vix::log if missing" ON)
 option(VIX_GAME_FETCH_THREADPOOL "Auto-fetch vix::threadpool if missing" ON)
 option(VIX_GAME_FETCH_ASYNC      "Auto-fetch vix::async if missing" ON)
-option(VIX_GAME_FETCH_CORE       "Auto-fetch vix::core if missing for examples" ON)
+option(VIX_GAME_FETCH_IO "Auto-fetch vix::io if missing for examples" ON)
 
 option(VIX_GAME_BUILD_TESTS      "Build game module tests" OFF)
 option(VIX_GAME_BUILD_EXAMPLES   "Build game module examples" OFF)
@@ -68,7 +68,7 @@ if (DEFINED VIX_UMBRELLA_BUILD AND VIX_UMBRELLA_BUILD)
   set(VIX_GAME_FETCH_LOG        OFF CACHE BOOL "Auto-fetch vix::log if missing" FORCE)
   set(VIX_GAME_FETCH_THREADPOOL OFF CACHE BOOL "Auto-fetch vix::threadpool if missing" FORCE)
   set(VIX_GAME_FETCH_ASYNC      OFF CACHE BOOL "Auto-fetch vix::async if missing" FORCE)
-  set(VIX_GAME_FETCH_CORE       OFF CACHE BOOL "Auto-fetch vix::core if missing for examples" FORCE)
+  set(VIX_GAME_FETCH_IO OFF CACHE BOOL "Auto-fetch vix::io if missing for examples" FORCE)
 endif()
 
 # --------------------------------------------------------------------
@@ -141,66 +141,62 @@ function(vix_game_resolve_dependency module_name target_name package_name fetch_
 endfunction()
 
 # --------------------------------------------------------------------
-# Dependency resolver for core examples
-# Important:
-#   For core, prefer local sibling before find_package(vix_core).
-#   This avoids installed vix_coreConfig requiring vix_async when the
-#   standalone async package is installed as asyncConfig.cmake.
+# Dependency resolver for io examples
 # --------------------------------------------------------------------
-function(vix_game_resolve_core_for_examples)
+function(vix_game_resolve_io_for_examples)
   if (DEFINED VIX_UMBRELLA_BUILD AND VIX_UMBRELLA_BUILD)
-    if (NOT TARGET vix::core)
-      message(FATAL_ERROR "[game/examples] Umbrella build: vix::core must be provided before game examples.")
+    if (NOT TARGET vix::io)
+      message(FATAL_ERROR "[game/examples] Umbrella build: vix::io must be provided before game examples.")
     endif()
 
     return()
   endif()
 
-  if (TARGET vix::core)
+  if (TARGET vix::io)
     return()
   endif()
 
   get_filename_component(_VIX_MODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
-  set(_VIX_CORE_DIR "${_VIX_MODULES_DIR}/core")
+  set(_VIX_IO_DIR "${_VIX_MODULES_DIR}/io")
 
-  if (EXISTS "${_VIX_CORE_DIR}/CMakeLists.txt")
-    message(STATUS "[game/examples] Adding local sibling core: ${_VIX_CORE_DIR}")
+  if (EXISTS "${_VIX_IO_DIR}/CMakeLists.txt")
+    message(STATUS "[game/examples] Adding local sibling io: ${_VIX_IO_DIR}")
     set(VIX_GAME_HAS_LOCAL_DEPENDENCIES ON PARENT_SCOPE)
-    add_subdirectory("${_VIX_CORE_DIR}" "${CMAKE_BINARY_DIR}/_vix_core")
+    add_subdirectory("${_VIX_IO_DIR}" "${CMAKE_BINARY_DIR}/_vix_io")
   endif()
 
-  if (TARGET vix::core)
+  if (TARGET vix::io)
     return()
   endif()
 
-  find_package(vix_core CONFIG QUIET)
+  find_package(vix_io CONFIG QUIET)
 
-  if (TARGET vix::core)
+  if (TARGET vix::io)
     return()
   endif()
 
-  if (VIX_GAME_FETCH_CORE)
+  if (VIX_GAME_FETCH_IO)
     include(FetchContent)
 
-    message(STATUS "[game/examples] Fetching vix::core via FetchContent")
+    message(STATUS "[game/examples] Fetching vix::io via FetchContent")
 
-    FetchContent_Declare(vix_core
-      GIT_REPOSITORY https://github.com/vixcpp/core.git
+    FetchContent_Declare(vix_io
+      GIT_REPOSITORY https://github.com/vixcpp/io.git
       GIT_TAG        v0.1.0
     )
 
-    FetchContent_MakeAvailable(vix_core)
+    FetchContent_MakeAvailable(vix_io)
   endif()
 
-  if (NOT TARGET vix::core)
+  if (NOT TARGET vix::io)
     message(FATAL_ERROR
-      "vix::core not found for game examples.\n"
-      "Examples use vix::print, so they require vix::core.\n"
+      "vix::io not found for game examples.\n"
+      "Examples use vix::print, so they require vix::io.\n"
       "Expected one of:\n"
-      "  - existing target: vix::core\n"
-      "  - local sibling module: ../core\n"
-      "  - installed package: find_package(vix_core CONFIG)\n"
-      "  - FetchContent enabled through VIX_GAME_FETCH_CORE=ON\n"
+      "  - existing target: vix::io\n"
+      "  - local sibling module: ../io\n"
+      "  - installed package: find_package(vix_io CONFIG)\n"
+      "  - FetchContent enabled through VIX_GAME_FETCH_IO=ON\n"
     )
   endif()
 endfunction()
@@ -452,8 +448,8 @@ endif()
 # Examples
 # --------------------------------------------------------------------
 if (VIX_GAME_BUILD_EXAMPLES)
-  vix_game_resolve_core_for_examples()
-  set(VIX_CORE_TARGET vix::core)
+  vix_game_resolve_io_for_examples()
+  set(VIX_IO_TARGET vix::io)
   add_subdirectory(examples)
 endif()
 
@@ -480,7 +476,7 @@ message(STATUS "Threadpool target: ${VIX_THREADPOOL_TARGET}")
 message(STATUS "Async target:      ${VIX_ASYNC_TARGET}")
 
 if (VIX_GAME_BUILD_EXAMPLES)
-  message(STATUS "Core target:       ${VIX_CORE_TARGET}")
+  message(STATUS "IO target:         ${VIX_IO_TARGET}")
 endif()
 
 message(STATUS "Tests:             ${VIX_GAME_BUILD_TESTS}")
