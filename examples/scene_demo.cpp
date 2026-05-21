@@ -14,9 +14,7 @@
  *
  */
 
-#include <vix/game/App.hpp>
-#include <vix/game/Frame.hpp>
-#include <vix/game/Scene.hpp>
+#include <vix/game/game.hpp>
 #include <vix/print.hpp>
 
 class MainScene final : public vix::game::Scene

@@ -25,6 +25,7 @@
 #include <vix/game/AssetId.hpp>
 #include <vix/game/AssetType.hpp>
 #include <vix/game/GameResult.hpp>
+#include <vix/game/EventType.hpp>
 
 namespace vix::game
 {

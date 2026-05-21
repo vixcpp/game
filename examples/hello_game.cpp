@@ -1,20 +1,4 @@
-/**
- *
- *  @file hello_game.cpp
- *  @author Gaspard Kirira
- *
- *  Copyright 2026, Gaspard Kirira.
- *  All rights reserved.
- *  https://github.com/vixcpp/game
- *
- *  Use of this source code is governed by a MIT license
- *  that can be found in the LICENSE file.
- *
- *  Vix.cpp
- *
- */
-
-#include <vix/game/App.hpp>
+#include <vix/game/game.hpp>
 #include <vix/print.hpp>
 
 int main()

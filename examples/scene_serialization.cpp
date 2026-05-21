@@ -1,9 +1,4 @@
-#include <memory>
-#include <string>
-
-#include <vix/game/App.hpp>
-#include <vix/game/Scene.hpp>
-#include <vix/game/SceneSerializer.hpp>
+#include <vix/game/game.hpp>
 #include <vix/print.hpp>
 
 class MainScene final : public vix::game::Scene

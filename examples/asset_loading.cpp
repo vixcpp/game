@@ -1,5 +1,4 @@
-#include <vix/game/Asset.hpp>
-#include <vix/game/AssetManager.hpp>
+#include <vix/game/game.hpp>
 #include <vix/print.hpp>
 
 int main()
@@ -25,7 +24,7 @@ int main()
   vix::print("path:", asset->path().relative());
   vix::print("size:", asset->size());
 
-  if (asset->text())
+  if (vix::game::is_text_asset(asset->type()))
   {
     vix::print("content:", asset->text_content());
   }

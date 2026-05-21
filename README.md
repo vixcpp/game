@@ -253,75 +253,6 @@ if (handle)
 }
 ```
 
-## Module structure
-
-```text
-include/vix/game/
-  game.hpp
-  all.hpp
-  version.hpp
-
-  App.hpp
-  AppConfig.hpp
-
-  Frame.hpp
-  GameClock.hpp
-  GameLoop.hpp
-  TimeStep.hpp
-
-  Event.hpp
-  EventBus.hpp
-  EventType.hpp
-
-  Scene.hpp
-  SceneManager.hpp
-  SceneId.hpp
-
-  Entity.hpp
-  EntityId.hpp
-  Component.hpp
-  System.hpp
-  Registry.hpp
-
-  Asset.hpp
-  AssetId.hpp
-  AssetManager.hpp
-  AssetPath.hpp
-  AssetType.hpp
-
-  JobSystem.hpp
-  JobHandle.hpp
-  JobPriority.hpp
-
-  GameError.hpp
-  GameResult.hpp
-```
-
-## Examples
-
-```text
-examples/
-  hello_game.cpp
-  basic_loop.cpp
-  scene_demo.cpp
-  asset_loading.cpp
-  jobs_demo.cpp
-```
-
-## Tests
-
-```text
-tests/
-  AppTests.cpp
-  GameLoopTests.cpp
-  TimeStepTests.cpp
-  EventBusTests.cpp
-  SceneManagerTests.cpp
-  RegistryTests.cpp
-  AssetManagerTests.cpp
-  JobSystemTests.cpp
-```
-
 ## Dependencies
 
 `vix/game` builds on existing Vix modules:
@@ -351,38 +282,38 @@ These should be built as future modules on top of the current foundation.
 
 ## Roadmap
 
-### V1
+### V1 - Completed
 
 - App lifecycle
 - Game loop
 - `TimeStep` and `Frame`
 - `EventBus`
 - `SceneManager`
-- simple `Registry`
+- Simple `Registry`
 - `AssetManager`
 - `JobSystem`
-- examples
-- tests
+- Examples
+- Tests
 
-### V2
+### V2 - Completed
 
-- input module
-- window module
-- renderer abstraction
+- Input module
+- Window module
+- Renderer abstraction
 - 2D rendering foundation
-- asset cache
-- async asset loading
-- scene serialization
-- stronger ECS iteration APIs
+- Asset cache
+- Async asset loading
+- Scene serialization
+- Stronger ECS iteration APIs
 
-### V3
+### V3 - Planned
 
-- editor runtime foundation
-- scripting integration
-- audio module
-- physics integration
-- game packaging workflow
-- templates through `vix new game`
+- Editor runtime foundation
+- Scripting integration
+- Audio module
+- Physics integration
+- Game packaging workflow
+- Game templates through `vix new game`
 
 ## License
 

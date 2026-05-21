@@ -1,10 +1,5 @@
 #include <memory>
-
-#include <vix/game/NullRenderer.hpp>
-#include <vix/game/NullWindow.hpp>
-#include <vix/game/Renderer.hpp>
-#include <vix/game/Window.hpp>
-#include <vix/game/WindowConfig.hpp>
+#include <vix/game/game.hpp>
 #include <vix/print.hpp>
 
 int main()

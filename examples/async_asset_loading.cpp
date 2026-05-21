@@ -1,6 +1,4 @@
-#include <vix/game/AsyncAssetLoader.hpp>
-#include <vix/game/AssetManager.hpp>
-#include <vix/game/JobSystem.hpp>
+#include <vix/game/game.hpp>
 #include <vix/print.hpp>
 
 int main()
