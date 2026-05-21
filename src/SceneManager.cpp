@@ -401,6 +401,32 @@ namespace vix::game
     return out;
   }
 
+  SceneFileData SceneManager::to_data() const
+  {
+    SceneFileData data;
+    data.version = 1;
+    data.active_scene = active_name();
+
+    data.scenes.reserve(scenes_.size());
+
+    for (const auto &[id, entry] : scenes_)
+    {
+      SceneData scene;
+      scene.id = id;
+      scene.name = entry.name;
+
+      if (entry.scene)
+      {
+        scene.loaded = entry.scene->loaded();
+        scene.active = entry.scene->active();
+      }
+
+      data.scenes.push_back(std::move(scene));
+    }
+
+    return data;
+  }
+
   void SceneManager::clear()
   {
     if (is_valid_scene_id(active_id_))

@@ -14,7 +14,7 @@
  *
  */
 
-#include <vix/game/game.hpp>
+#include <vix/game/App.hpp>
 #include <vix/print.hpp>
 
 int main()
@@ -22,25 +22,10 @@ int main()
   vix::game::App app;
 
   app.set_title("Hello Vix Game");
-  app.set_target_fps(0);
+  app.set_target_fps(60);
 
-  app.on_update(
-      [&](const vix::game::Frame &frame)
-      {
-        vix::print("Hello from vix/game");
-        vix::print("frame:", frame.index);
-        vix::print("delta ms:", frame.delta_ms());
-
-        app.stop();
-      });
-
-  auto result = app.run();
-
-  if (!result)
-  {
-    vix::print("error:", result.error().message());
-    return 1;
-  }
+  vix::print("Hello from vix/game");
+  vix::print("title:", app.config().title);
 
   return 0;
 }

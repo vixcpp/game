@@ -35,6 +35,9 @@
 
 namespace vix::game
 {
+  template <typename... Components>
+  class RegistryView;
+
   /**
    * @brief Stores entities, components, and systems.
    *
@@ -266,6 +269,15 @@ namespace vix::game
       store->remove(id);
       return true;
     }
+
+    /**
+     * @brief Create a typed view over entities owning the requested components.
+     *
+     * @tparam Components Component types required by the view.
+     * @return Registry view.
+     */
+    template <typename... Components>
+    [[nodiscard]] RegistryView<Components...> view();
 
     /**
      * @brief Add a system instance.
@@ -580,6 +592,18 @@ namespace vix::game
      */
     EntityId next_entity_id_{1};
   };
+
+} // namespace vix::game
+
+#include <vix/game/RegistryView.hpp>
+
+namespace vix::game
+{
+  template <typename... Components>
+  [[nodiscard]] RegistryView<Components...> Registry::view()
+  {
+    return RegistryView<Components...>(*this);
+  }
 
 } // namespace vix::game
 

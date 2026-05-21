@@ -171,6 +171,14 @@ namespace vix::game
         bool detached) const;
 
     /**
+     * @brief Execute a job and dispatch lifecycle events.
+     *
+     * @param job Job function to execute.
+     * @param id Job id.
+     */
+    void execute_job(Job job, JobId id);
+
+    /**
      * @brief Dispatch a job lifecycle event if an event bus is available.
      *
      * @param type Event type.

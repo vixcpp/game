@@ -29,6 +29,7 @@
 #include <vix/game/GameError.hpp>
 #include <vix/game/GameResult.hpp>
 #include <vix/game/Scene.hpp>
+#include <vix/game/SceneData.hpp>
 #include <vix/game/SceneId.hpp>
 
 namespace vix::game
@@ -283,6 +284,13 @@ namespace vix::game
      * @brief Return all registered scene names.
      */
     [[nodiscard]] std::vector<std::string> names() const;
+
+    /**
+     * @brief Return a serializable snapshot of the scene manager.
+     *
+     * @return Scene file data containing registered scenes and active scene.
+     */
+    [[nodiscard]] SceneFileData to_data() const;
 
     /**
      * @brief Unload and remove all scenes.

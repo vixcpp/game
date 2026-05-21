@@ -106,14 +106,16 @@ namespace vix::game
 
     try
     {
-      auto handle = pool_->handle(
-          [job = std::move(job)]()
+      const JobId id = pool_->next_task_id();
+
+      auto handle = pool_->handle_with_id(
+          id,
+          [this, id, job = std::move(job)]() mutable
           {
-            job();
+            execute_job(std::move(job), id);
           },
           options);
 
-      const JobId id = handle.id();
       dispatch_job_event(EventType::JobStarted, id);
 
       return JobHandle(std::move(handle));
@@ -147,17 +149,12 @@ namespace vix::game
 
     try
     {
+      const JobId id = pool_->next_task_id();
+
       auto result = pool_->post(
-          [this, job = std::move(job)]()
+          [this, id, job = std::move(job)]() mutable
           {
-            try
-            {
-              job();
-            }
-            catch (...)
-            {
-              dispatch_job_event(EventType::JobFailed, invalid_job_id);
-            }
+            execute_job(std::move(job), id);
           },
           options);
 
@@ -167,6 +164,8 @@ namespace vix::game
             GameErrorCode::JobRejected,
             "failed to submit detached job");
       }
+
+      dispatch_job_event(EventType::JobStarted, id);
 
       return true;
     }
@@ -219,6 +218,20 @@ namespace vix::game
     options.set_priority(to_task_priority(priority));
     options.set_detached(detached);
     return options;
+  }
+
+  void JobSystem::execute_job(Job job, JobId id)
+  {
+    try
+    {
+      job();
+      dispatch_job_event(EventType::JobCompleted, id);
+    }
+    catch (...)
+    {
+      dispatch_job_event(EventType::JobFailed, id);
+      throw;
+    }
   }
 
   void JobSystem::dispatch_job_event(EventType type, JobId id)

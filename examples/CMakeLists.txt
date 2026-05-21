@@ -7,11 +7,17 @@ if (NOT TARGET vix::io)
 endif()
 
 set(VIX_GAME_EXAMPLES
-  asset_loading
-  basic_loop
   hello_game
-  jobs_demo
+  basic_loop
   scene_demo
+  asset_loading
+  jobs_demo
+  input_demo
+  null_window
+  null_renderer
+  render2d_demo
+  async_asset_loading
+  scene_serialization
 )
 
 foreach(example_name ${VIX_GAME_EXAMPLES})

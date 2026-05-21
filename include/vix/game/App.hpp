@@ -24,6 +24,7 @@
 #include <vix/game/Frame.hpp>
 #include <vix/game/GameLoop.hpp>
 #include <vix/game/GameResult.hpp>
+#include <vix/game/AsyncAssetLoader.hpp>
 
 namespace vix::game
 {
@@ -175,6 +176,16 @@ namespace vix::game
     [[nodiscard]] const JobSystem &jobs() const;
 
     /**
+     * @brief Return the async asset loader.
+     */
+    [[nodiscard]] AsyncAssetLoader &async_assets();
+
+    /**
+     * @brief Return the async asset loader.
+     */
+    [[nodiscard]] const AsyncAssetLoader &async_assets() const;
+
+    /**
      * @brief Set the per-frame update callback.
      *
      * This callback is forwarded to the internal game loop.
@@ -275,6 +286,11 @@ namespace vix::game
      * @brief Background job system.
      */
     std::unique_ptr<JobSystem> jobs_{};
+
+    /**
+     * @brief Async asset loader.
+     */
+    std::unique_ptr<AsyncAssetLoader> async_assets_{};
 
     /**
      * @brief Whether init() completed successfully.

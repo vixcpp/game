@@ -14,50 +14,34 @@
  *
  */
 
-#include <vix/game/game.hpp>
+#include <vix/game/App.hpp>
+#include <vix/game/Frame.hpp>
 #include <vix/print.hpp>
-
-#include <cstdint>
 
 int main()
 {
-  vix::game::TimeStep step;
-  step.set_target_fps(0);
-  step.fixed_update = false;
+  vix::game::App app;
 
-  vix::game::GameLoop loop(step);
+  app.set_title("Basic Loop");
+  app.set_target_fps(60);
 
-  std::uint32_t frames = 0;
-
-  loop.set_update_callback(
-      [&](const vix::game::Frame &frame)
+  app.on_update(
+      [&app](const vix::game::Frame &frame)
       {
-        vix::print(
-            "frame:",
-            frame.index,
-            "delta_ms:",
-            frame.delta_ms(),
-            "elapsed_ms:",
-            frame.elapsed_ms());
+        vix::print("frame:", frame.index, "delta_ms:", frame.delta_ms());
 
-        ++frames;
-
-        if (frames >= 5)
+        if (frame.index >= 5)
         {
-          loop.stop();
+          app.stop();
         }
       });
 
-  auto result = loop.run();
-
+  auto result = app.run();
   if (!result)
   {
     vix::print("error:", result.error().message());
     return 1;
   }
-
-  vix::print("loop finished");
-  vix::print("total frames:", loop.frame_index());
 
   return 0;
 }

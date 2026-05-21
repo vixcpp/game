@@ -14,50 +14,72 @@
  *
  */
 
-#include <vix/game/game.hpp>
+#include <vix/game/App.hpp>
+#include <vix/game/Frame.hpp>
+#include <vix/game/Scene.hpp>
 #include <vix/print.hpp>
 
-#include <atomic>
-#include <chrono>
-#include <thread>
+class MainScene final : public vix::game::Scene
+{
+public:
+  MainScene()
+      : vix::game::Scene("main")
+  {
+  }
+
+  vix::game::GameBoolResult on_load() override
+  {
+    vix::print("main scene loaded");
+    return vix::game::Scene::on_load();
+  }
+
+  void on_enter() override
+  {
+    vix::game::Scene::on_enter();
+    vix::print("main scene entered");
+  }
+
+  void on_update(const vix::game::Frame &frame) override
+  {
+    vix::print("scene frame:", frame.index);
+
+    if (frame.index >= 5)
+    {
+      app().stop();
+    }
+  }
+
+  vix::game::GameBoolResult on_unload() override
+  {
+    vix::print("main scene unloaded");
+    return vix::game::Scene::on_unload();
+  }
+};
 
 int main()
 {
-  vix::game::JobSystem jobs(2);
+  vix::game::App app;
 
-  auto started = jobs.start();
-  if (!started)
+  auto added = app.scenes().create<MainScene>("main");
+  if (!added)
   {
-    vix::print("error:", started.error().message());
+    vix::print("error:", added.error().message());
     return 1;
   }
 
-  std::atomic<int> value{0};
-
-  auto handle = jobs.submit(
-      [&]()
-      {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        value.store(42);
-      },
-      vix::game::JobPriority::High);
-
-  if (!handle)
+  auto active = app.scenes().set_active("main");
+  if (!active)
   {
-    vix::print("error:", handle.error().message());
+    vix::print("error:", active.error().message());
     return 1;
   }
 
-  vix::print("job submitted");
-  vix::print("job id:", handle.value().id());
-
-  handle.value().wait();
-
-  vix::print("job completed");
-  vix::print("value:", value.load());
-  vix::print("workers:", jobs.worker_count());
-
-  jobs.shutdown();
+  auto result = app.run();
+  if (!result)
+  {
+    vix::print("error:", result.error().message());
+    return 1;
+  }
 
   return 0;
 }

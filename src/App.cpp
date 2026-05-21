@@ -15,7 +15,7 @@
  */
 
 #include <vix/game/App.hpp>
-
+#include <vix/game/AsyncAssetLoader.hpp>
 #include <vix/game/AssetManager.hpp>
 #include <vix/game/Event.hpp>
 #include <vix/game/EventBus.hpp>
@@ -39,6 +39,7 @@ namespace vix::game
         events_(),
         assets_(),
         jobs_(),
+        async_assets_(),
         initialized_(false),
         shutdown_done_(false)
   {
@@ -244,6 +245,17 @@ namespace vix::game
     return *jobs_;
   }
 
+  AsyncAssetLoader &App::async_assets()
+  {
+    create_systems();
+    return *async_assets_;
+  }
+
+  const AsyncAssetLoader &App::async_assets() const
+  {
+    return *async_assets_;
+  }
+
   App &App::set_title(std::string title)
   {
     config_.title = std::move(title);
@@ -279,6 +291,11 @@ namespace vix::game
     {
       jobs_ = std::make_unique<JobSystem>();
       jobs_->set_event_bus(events_.get());
+    }
+
+    if (!async_assets_)
+    {
+      async_assets_ = std::make_unique<AsyncAssetLoader>(*assets_, *jobs_);
     }
   }
 
