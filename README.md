@@ -1,80 +1,195 @@
 # vix/game
 
-Game foundation module for Vix.cpp.
+Game application foundation for Vix.cpp.
 
-**Loop. Scenes. Entities. Assets. Jobs.**
+`vix/game` provides the core runtime layer needed to build games, simulations, interactive tools, prototypes, and custom engines on top of Vix.cpp.
 
-## Overview
+It is not designed as a full game engine in its first versions.
+It is designed as a clean, modular, backend-independent foundation that gives developers the building blocks required to create their own game architecture.
 
-`vix/game` is the game foundation layer of Vix.cpp.
+## Motivation
 
-It does not try to be a full game engine in V1.
+Most C++ game projects start with the same problems:
 
-Instead, it provides the core infrastructure needed to build games, simulations, tools, prototypes, and custom engines on top of Vix.
+- setting up an application loop
+- managing scenes
+- tracking frame time
+- dispatching events
+- loading assets
+- running background jobs
+- handling input
+- abstracting windows and renderers
+- organizing runtime systems
+- preparing editor, scripting, audio, and physics layers
 
-The module focuses on:
+These pieces are often rebuilt from scratch, tied to a specific engine, or mixed directly into application code.
+
+`vix/game` exists to solve that problem.
+
+The goal is to provide a small but serious foundation for real-time applications without forcing developers into a locked engine model.
+
+Vix.cpp already focuses on developer experience, runtime workflows, fast builds, explicit APIs, and modular C++ development. The game module extends that philosophy to interactive software.
+
+## Philosophy
+
+`vix/game` follows a simple principle:
+
+> Give developers the foundation to build engines, games, simulations, and tools without locking them into a complete engine.
+
+The module is built around these ideas:
+
+- **Backend-independent**: no forced dependency on SDL, GLFW, OpenGL, Vulkan, Box2D, Lua, or any specific backend.
+- **Modular by design**: every subsystem can evolve independently.
+- **Explicit APIs**: lifecycle, runtime, scene, input, rendering, audio, physics, and scripting concepts are visible and understandable.
+- **Low-level friendly**: the module gives structure without hiding too much from the developer.
+- **Runtime-first**: designed to work with the broader Vix.cpp runtime and build workflow.
+- **Progressive adoption**: users can start with a simple loop and later add scenes, ECS, rendering, editor tools, scripting, and packaging.
+
+## What vix/game provides
+
+Current foundation includes:
 
 - application lifecycle
 - game loop
 - frame timing
-- scenes
-- events
-- entities and components
-- asset loading
-- background jobs
+- fixed update support
+- event system
+- scene management
+- simple ECS-style registry
+- entities, components, systems
+- asset management
+- asset cache
+- async asset loading
+- background job system
+- input system
+- window abstraction
+- renderer abstraction
+- 2D rendering foundation
+- scene serialization
+- runtime context
+- editor runtime foundation
+- scripting runtime foundation
+- audio runtime foundation
+- physics runtime foundation
+- game package metadata
+- `vix new --game` project template
 
-This makes `vix/game` a clean base for future rendering, audio, input, physics, scripting, and editor modules.
+## Who is this for?
 
-## Philosophy
+`vix/game` is useful if you want to build:
 
-`vix/game` is built around one idea:
+- a small C++ game
+- a game prototype
+- a simulation
+- an editor tool
+- a custom engine
+- a 2D rendering experiment
+- a real-time visualization tool
+- an educational engine architecture
+- a game framework on top of Vix.cpp
 
-> Give developers the foundation to build game engines, not a locked game engine.
+It is especially useful for developers who want the structure of an engine without giving up control over their architecture.
 
-The module stays small, explicit, and portable.
+## Core architecture
 
-It avoids depending on graphics APIs, windowing systems, physics engines, or audio libraries in V1.
+The module is organized around a small set of runtime layers.
 
-That keeps the first version stable and easy to extend.
+```text
+App
+  ├── GameLoop
+  ├── EventBus
+  ├── SceneManager
+  ├── AssetManager
+  ├── AsyncAssetLoader
+  └── JobSystem
 
-## What vix/game provides
+GameContext
+  ├── App access
+  ├── InputSystem
+  ├── Window
+  ├── Renderer
+  └── Renderer2D
 
-### App lifecycle
+GameRuntime
+  └── Coordinates runtime frame phases
 
-`vix::game::App` is the main facade.
+EditorRuntime
+  └── Editor mode, play mode, editor context
 
-It coordinates:
+SceneRuntime
+  └── High-level scene operations
 
-- configuration
-- game loop
-- scene manager
-- event bus
-- asset manager
-- job system
+ScriptRuntime
+  └── Dependency-free scripting hook foundation
+
+AudioRuntime
+  └── Dependency-free audio foundation
+
+PhysicsRuntime
+  └── Dependency-free 2D physics foundation
+
+GamePackage
+  └── Project metadata for future packaging workflows
+```
+
+## Basic example
 
 ```cpp
-#include <vix/game/game.hpp>
+#include <vix/game/all.hpp>
 #include <vix/print.hpp>
+
+class MainScene final : public vix::game::Scene
+{
+public:
+  vix::game::GameBoolResult on_load() override
+  {
+    vix::print("Main scene loaded");
+    return vix::game::Scene::on_load();
+  }
+
+  void on_update(const vix::game::Frame& frame) override
+  {
+    vix::print("frame:", frame.index);
+
+    if (frame.index >= 5)
+    {
+      app().stop();
+    }
+  }
+};
 
 int main()
 {
   vix::game::App app;
+  app.set_title("My Game");
 
-  app.set_title("Hello Vix Game");
-  app.set_target_fps(0);
+  vix::game::GameRuntime runtime(app);
 
-  app.on_update(
-      [&](const vix::game::Frame& frame)
-      {
-        vix::print("frame:", frame.index);
-        app.stop();
-      });
+  auto runtime_init = runtime.init();
+  if (!runtime_init)
+  {
+    vix::print("runtime init failed:", runtime_init.error().message());
+    return 1;
+  }
+
+  auto scene = app.scenes().create<MainScene>("main");
+  if (!scene)
+  {
+    vix::print("scene creation failed:", scene.error().message());
+    return 1;
+  }
+
+  auto active = app.scenes().set_active("main");
+  if (!active)
+  {
+    vix::print("scene activation failed:", active.error().message());
+    return 1;
+  }
 
   auto result = app.run();
-
   if (!result)
   {
-    vix::print("error:", result.error().message());
+    vix::print("game failed:", result.error().message());
     return 1;
   }
 
@@ -82,239 +197,499 @@ int main()
 }
 ```
 
-## Core features
+## Create a game project
 
-### Game loop
+`vix/game` is integrated with the Vix CLI.
+
+```bash
+vix new mario --game
+cd mario
+vix build
+vix run
+```
+
+Generated layout:
+
+```text
+mario/
+  assets/
+  game.package.json
+  README.md
+  src/
+    main.cpp
+  vix.app
+  vix.json
+```
+
+The generated project uses:
+
+- `vix/game`
+- `GameRuntime`
+- `Scene`
+- `SceneManager`
+- `GamePackage`
+- `vix.app`
+- `vix.json`
+
+## App lifecycle
+
+`App` is the main facade of the game module.
+
+It owns and coordinates:
+
+- game loop
+- scene manager
+- event bus
+- asset manager
+- async asset loader
+- job system
+
+Typical flow:
+
+- create app
+- configure app
+- create scenes
+- set active scene
+- run app
+- shutdown app
+
+`App` is intentionally small and focused. It does not directly become a full engine. Instead, it gives the rest of the module a stable runtime root.
+
+## Game loop and frame model
 
 The game loop provides:
 
-- variable update
-- optional fixed update
-- frame delta
-- elapsed time
 - frame index
-- FPS limiting
-- clean stop control
+- delta time
+- elapsed time
+- fixed update steps
+- update callback
+- fixed update callback
 
-Main types:
+`Frame` is passed to scenes, systems, runtimes, and callbacks.
 
-- `GameLoop`
-- `GameClock`
-- `TimeStep`
-- `Frame`
+```cpp
+void on_update(const vix::game::Frame& frame)
+{
+  auto ms = frame.delta_ms();
+}
+```
 
-### Scenes
+This gives game code access to timing without forcing a specific simulation model.
 
-Scenes represent high-level game states.
+## Scenes
+
+Scenes represent logical application states.
 
 Examples:
 
 - main menu
 - gameplay
-- pause screen
 - loading screen
+- pause menu
+- editor scene
+- simulation scene
 
-Main types:
+A scene has lifecycle hooks:
 
-- `Scene`
-- `SceneId`
-- `SceneManager`
+- `on_attach`
+- `on_load`
+- `on_enter`
+- `on_update`
+- `on_fixed_update`
+- `on_exit`
+- `on_unload`
+- `on_detach`
 
-```cpp
-class MainScene final : public vix::game::Scene
-{
-public:
-  void on_update(const vix::game::Frame& frame) override
-  {
-    (void)frame;
-    app().stop();
-  }
-};
-```
+`SceneManager` owns scenes, loads them, activates them, updates them, and serializes the scene list.
 
-### Events
+## ECS foundation
 
-The event system provides synchronous dispatch.
+`Registry` provides a simple ECS-style foundation.
 
 It supports:
 
-- built-in event types
-- custom named events
-- global listeners
-- event metadata fields
-
-Main types:
-
-- `Event`
-- `EventBus`
-- `EventType`
-
-Built-in events include:
-
-- app started
-- app stopping
-- app stopped
-- frame started
-- frame ended
-- scene loaded
-- scene changed
-- asset loaded
-- job started
-
-### Entities and components
-
-`vix/game` includes a simple ECS-style registry.
-
-It supports:
-
-- entity creation
-- component storage by C++ type
+- entities
+- components
 - systems
-- update forwarding
+- typed component storage
+- typed views
+- update and fixed update forwarding
 
-Main types:
+This is not yet an archetype ECS.
 
-- `Entity`
-- `EntityId`
-- `Component`
-- `System`
-- `Registry`
+It is intentionally simple, readable, and suitable as a stable foundation.
 
-This is not yet a high-performance archetype ECS.
+Future versions can improve performance without changing the high-level mental model.
 
-It is a clean V1 foundation.
+## Assets
 
-### Assets
-
-The asset manager loads raw assets from disk.
+`AssetManager` handles asset loading and asset storage.
 
 It supports:
 
+- relative asset paths
+- asset type inference
 - text assets
-- JSON assets
 - binary assets
-- image/audio/shader/script classification
-- lookup by id
-- lookup by path
-- asset events
+- asset cache
+- asset lifecycle events
 
-Main types:
+`AsyncAssetLoader` adds background loading through `JobSystem`.
 
-- `Asset`
-- `AssetId`
-- `AssetType`
-- `AssetPath`
-- `AssetManager`
+This keeps the public API simple while preparing the module for real-world asset workflows.
 
-```cpp
-vix::game::AssetManager assets("assets");
+## Jobs
 
-auto id = assets.load("hello.txt");
-if (!id)
-{
-  return 1;
-}
+`JobSystem` wraps Vix threadpool functionality for game workloads.
 
-const auto* asset = assets.get(id.value());
-```
+It can be used for:
 
-### Jobs
+- async asset loading
+- scene preparation
+- CPU-heavy tasks
+- future parallel systems
+- editor background tasks
 
-The job system wraps `vix/threadpool`.
+The API is intentionally game-facing, while the implementation stays connected to the broader Vix runtime.
+
+## Input
+
+`InputSystem` provides a backend-independent input layer.
 
 It supports:
 
-- background jobs
-- detached jobs
-- job priorities
-- job handles
-- cancellation through the underlying threadpool handle
-- job lifecycle events
+- key state
+- pointer button state
+- pointer position
+- pointer delta
+- wheel delta
+- action bindings
+- pressed, down, and released queries
 
-Main types:
+Backends can feed raw input into `InputSystem`, while game code can query higher-level actions.
 
-- `JobSystem`
-- `JobHandle`
-- `JobPriority`
+Example:
 
 ```cpp
-vix::game::JobSystem jobs(2);
+input.bind_key("jump", vix::game::InputKey::Space);
 
-auto handle = jobs.submit(
-    []()
-    {
-      // background work
-    },
-    vix::game::JobPriority::High);
-
-if (handle)
+if (input.action_pressed("jump"))
 {
-  handle.value().wait();
+  // jump
 }
 ```
 
-## Dependencies
+## Window and renderer abstraction
 
-`vix/game` builds on existing Vix modules:
+`Window` and `Renderer` are backend-independent facades.
 
-- `vix/error`
-- `vix/time`
-- `vix/fs`
-- `vix/path`
-- `vix/json`
-- `vix/log`
-- `vix/threadpool`
+They do not force a specific platform or graphics API.
 
-## What V1 does not include
+This allows future support for:
 
-V1 intentionally does not include:
+- null backend
+- SDL backend
+- GLFW backend
+- OpenGL backend
+- Vulkan backend
+- software rendering
+- custom engine backends
 
-- rendering
-- window creation
-- input handling
-- audio engine
-- physics engine
-- animation system
-- scripting runtime
-- editor tooling
+The current design keeps the module lightweight while leaving room for serious backend integrations.
 
-These should be built as future modules on top of the current foundation.
+## 2D rendering foundation
 
-## Roadmap
+`Renderer2D` provides a stable 2D rendering API.
 
-### V1 - Completed
+It supports:
+
+- frame lifecycle forwarding
+- clear color
+- active camera
+- sprite draw command collection
+
+The current implementation focuses on API structure and command collection. Real GPU rendering can be added later through renderer backends.
+
+## Runtime foundation
+
+V3 introduced runtime layers:
+
+- `GameContext`
+- `GameRuntime`
+- `EditorContext`
+- `EditorRuntime`
+- `SceneRuntime`
+- `ScriptRuntime`
+- `AudioRuntime`
+- `PhysicsRuntime`
+
+This separates raw systems from orchestration.
+
+Instead of placing every feature inside `App`, runtime-specific behavior now lives in dedicated runtime objects.
+
+This keeps the architecture clean as the module grows.
+
+## Editor foundation
+
+The editor foundation is intentionally minimal.
+
+It provides:
+
+- edit mode
+- play mode
+- selected scene
+- active tool
+- dirty state
+- editor runtime lifecycle
+
+This prepares the module for future editor tools without coupling the core runtime to a UI framework.
+
+## Scripting foundation
+
+`ScriptRuntime` does not embed a scripting language yet.
+
+Instead, it provides a dependency-free callback layer that can later support:
+
+- Lua
+- JavaScript
+- Python
+- custom scripting
+- hot reload
+- editor scripting
+
+This avoids adding a heavy dependency too early while keeping the API direction clear.
+
+## Audio foundation
+
+`AudioRuntime` currently stores audio source metadata and playback state.
+
+It prepares the API for future audio backends without requiring OpenAL, SDL audio, FMOD, or another dependency.
+
+It supports:
+
+- source loading
+- play state
+- stop state
+- volume
+- loop flag
+- source lookup
+
+## Physics foundation
+
+`PhysicsRuntime` provides a small dependency-free 2D physics foundation.
+
+It supports:
+
+- bodies
+- position
+- velocity
+- acceleration
+- mass
+- gravity
+- fixed update integration
+
+It is not meant to replace Box2D or Bullet.
+
+It exists to provide a stable physics runtime surface where future backends can be integrated.
+
+## Game package metadata
+
+`GamePackage` describes a game project.
+
+It includes:
+
+- name
+- version
+- author
+- entry scene
+- asset root
+- output directory
+- scene list
+- asset list
+
+This is the base for future workflows:
+
+- `vix new game`
+- `vix game package`
+- `vix game export`
+- editor project loading
+- asset packaging
+- distribution metadata
+
+## Project manifest
+
+A generated game project uses `vix.app`.
+
+Example:
+
+```text
+name = "mario"
+type = "executable"
+standard = "c++20"
+
+sources = [
+  "src/main.cpp",
+]
+
+include_dirs = [
+  "src",
+]
+
+compile_features = [
+  "cxx_std_20",
+]
+
+packages = [
+  "vix",
+]
+
+links = [
+  "vix::game",
+  "vix::io",
+]
+
+resources = [
+  "assets=assets",
+  "game.package.json=game.package.json",
+]
+
+output_dir = "bin"
+```
+
+This keeps game projects simple while still using the Vix build system internally.
+
+## Module status
+
+### V1 completed
 
 - App lifecycle
 - Game loop
-- `TimeStep` and `Frame`
+- `TimeStep`
+- `Frame`
 - `EventBus`
 - `SceneManager`
-- Simple `Registry`
+- simple `Registry`
 - `AssetManager`
 - `JobSystem`
-- Examples
-- Tests
+- examples
+- tests
 
-### V2 - Completed
+### V2 completed
 
-- Input module
-- Window module
-- Renderer abstraction
+- input module
+- window module
+- renderer abstraction
 - 2D rendering foundation
-- Asset cache
-- Async asset loading
-- Scene serialization
-- Stronger ECS iteration APIs
+- asset cache
+- async asset loading
+- scene serialization
+- stronger ECS iteration APIs
 
-### V3 - Completed
+### V3 completed
 
-- Editor runtime foundation
-- Scripting integration
-- Audio module
-- Physics integration
-- Game packaging workflow
-- Game templates through `vix new game`
+- `GameContext`
+- `GameRuntime`
+- `EditorContext`
+- `EditorRuntime`
+- `SceneRuntime`
+- `ScriptRuntime`
+- `AudioRuntime`
+- `PhysicsRuntime`
+- `GamePackage`
+- `vix new --game` template
+- V3 runtime smoke example
+
+## Roadmap
+
+### V4 planned
+
+- real window backend integration
+- real renderer backend integration
+- sprite rendering backend
+- asset pipeline improvements
+- editor tool APIs
+- scene inspection APIs
+- runtime diagnostics
+
+### V5 planned
+
+- scripting backend integration
+- audio backend integration
+- physics backend integration
+- game packaging command
+- game export workflow
+- project templates through `vix new game`
+
+## Design boundaries
+
+`vix/game` does not try to do everything at once.
+
+It avoids:
+
+- forcing a rendering backend
+- forcing a windowing library
+- forcing a scripting language
+- forcing a physics engine
+- becoming a closed engine
+- hiding the runtime model
+
+This is intentional.
+
+The module should stay useful for developers building their own systems on top of Vix.cpp.
+
+## Build
+
+From the module directory:
+
+```bash
+vix build --build-target all -v -- -DVIX_GAME_BUILD_EXAMPLES=ON
+```
+
+Run examples:
+
+```bash
+cd build-ninja/examples
+./vix_game_hello_game
+./vix_game_scene_demo
+./vix_game_runtime_v3_demo
+```
+
+## Testing the generated game template
+
+```bash
+vix new mario --game
+cd mario
+vix build
+vix run
+```
+
+Expected output:
+
+```text
+Main scene loaded
+game app initialized title=mario
+frame: 0
+frame: 1
+frame: 2
+frame: 3
+frame: 4
+frame: 5
+game app shutdown title=mario
+```
+
+## Why this matters
+
+C++ is powerful for games and real-time software, but project structure can quickly become complex.
+
+`vix/game` gives Vix.cpp a serious game foundation while keeping the developer in control.
+
+It is not trying to compete with Unity, Unreal, Godot, or established engines.
+
+It targets a different need:
+
+> A clean C++ runtime foundation for developers who want to build games, simulations, tools, and custom engines with Vix.cpp.
 
 ## License
 
-MIT License.
+MIT
