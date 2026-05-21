@@ -306,7 +306,7 @@ These should be built as future modules on top of the current foundation.
 - Scene serialization
 - Stronger ECS iteration APIs
 
-### V3 - Planned
+### V3 - Completed
 
 - Editor runtime foundation
 - Scripting integration

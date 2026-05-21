@@ -86,4 +86,17 @@
 #include <vix/game/WindowConfig.hpp>
 #include <vix/game/WindowEvent.hpp>
 
+#include <vix/game/GameContext.hpp>
+#include <vix/game/GameRuntime.hpp>
+
+#include <vix/game/EditorContext.hpp>
+#include <vix/game/EditorRuntime.hpp>
+
+#include <vix/game/SceneRuntime.hpp>
+#include <vix/game/ScriptRuntime.hpp>
+#include <vix/game/AudioRuntime.hpp>
+#include <vix/game/PhysicsRuntime.hpp>
+
+#include <vix/game/GamePackage.hpp>
+
 #endif // VIX_GAME_ALL_HPP

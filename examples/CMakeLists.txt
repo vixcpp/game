@@ -18,6 +18,7 @@ set(VIX_GAME_EXAMPLES
   render2d_demo
   async_asset_loading
   scene_serialization
+  runtime_v3_demo
 )
 
 foreach(example_name ${VIX_GAME_EXAMPLES})
