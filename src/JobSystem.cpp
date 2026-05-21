@@ -147,7 +147,7 @@ namespace vix::game
 
     try
     {
-      pool_->post(
+      auto result = pool_->post(
           [this, job = std::move(job)]()
           {
             try
@@ -160,6 +160,13 @@ namespace vix::game
             }
           },
           options);
+
+      if (!result)
+      {
+        return make_game_error(
+            GameErrorCode::JobRejected,
+            "failed to submit detached job");
+      }
 
       return true;
     }
