@@ -20,6 +20,7 @@ set(VIX_GAME_EXAMPLES
   scene_serialization
   runtime_v3_demo
   export_project
+  opengl_renderer_demo
 )
 
 set(VIX_GAME_SDL_EXAMPLES

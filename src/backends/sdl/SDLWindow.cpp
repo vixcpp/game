@@ -285,7 +285,11 @@ namespace vix::game::sdl
       flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
     }
 
+    if (config.opengl)
+    {
+      flags |= SDL_WINDOW_OPENGL;
+    }
+
     return flags;
   }
-
 } // namespace vix::game::sdl

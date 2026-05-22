@@ -55,6 +55,7 @@ option(VIX_GAME_FETCH_IO "Auto-fetch vix::io if missing for examples" ON)
 option(VIX_GAME_BUILD_TESTS      "Build game module tests" OFF)
 option(VIX_GAME_BUILD_EXAMPLES   "Build game module examples" OFF)
 option(VIX_GAME_ENABLE_SDL       "Enable SDL backend for vix/game" OFF)
+option(VIX_GAME_ENABLE_OPENGL    "Enable OpenGL backend for vix/game" OFF)
 set(VIX_GAME_HAS_LOCAL_DEPENDENCIES OFF)
 
 # --------------------------------------------------------------------
@@ -85,6 +86,14 @@ file(GLOB_RECURSE GAME_SDL_SOURCES CONFIGURE_DEPENDS
 
 if (GAME_SDL_SOURCES)
   list(REMOVE_ITEM GAME_SOURCES ${GAME_SDL_SOURCES})
+endif()
+
+file(GLOB_RECURSE GAME_OPENGL_SOURCES CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/backends/opengl/*.cpp"
+)
+
+if (GAME_OPENGL_SOURCES)
+  list(REMOVE_ITEM GAME_SOURCES ${GAME_OPENGL_SOURCES})
 endif()
 
 # --------------------------------------------------------------------
@@ -332,55 +341,77 @@ if (GAME_SOURCES)
   )
 
   if (VIX_GAME_ENABLE_SDL)
-  find_package(SDL2 REQUIRED)
-  find_package(SDL2_image REQUIRED)
+    find_package(SDL2 REQUIRED)
+    find_package(SDL2_image REQUIRED)
 
-  target_sources(vix_game
-    PRIVATE
-      src/backends/sdl/SDLInputMap.cpp
-      src/backends/sdl/SDLRenderer.cpp
-      src/backends/sdl/SDLWindow.cpp
-  )
-
-  target_compile_definitions(vix_game
-    PUBLIC
-      VIX_GAME_HAS_SDL=1
-  )
-
-  if (TARGET SDL2::SDL2)
-    target_link_libraries(vix_game
-      PUBLIC
-        SDL2::SDL2
-    )
-  else()
-    target_include_directories(vix_game
-      PUBLIC
-        ${SDL2_INCLUDE_DIRS}
+    target_sources(vix_game
+      PRIVATE
+        src/backends/sdl/SDLInputMap.cpp
+        src/backends/sdl/SDLRenderer.cpp
+        src/backends/sdl/SDLWindow.cpp
     )
 
+    target_compile_definitions(vix_game
+      PUBLIC
+        VIX_GAME_HAS_SDL=1
+    )
+
+    if (TARGET SDL2::SDL2)
+      target_link_libraries(vix_game
+        PUBLIC
+          SDL2::SDL2
+      )
+    else()
+      target_include_directories(vix_game
+        PUBLIC
+          ${SDL2_INCLUDE_DIRS}
+      )
+
+      target_link_libraries(vix_game
+        PUBLIC
+          ${SDL2_LIBRARIES}
+      )
+    endif()
+
+    if (TARGET SDL2_image::SDL2_image)
+      target_link_libraries(vix_game
+        PUBLIC
+          SDL2_image::SDL2_image
+      )
+    else()
+      target_include_directories(vix_game
+        PUBLIC
+          ${SDL2_IMAGE_INCLUDE_DIRS}
+      )
+
+      target_link_libraries(vix_game
+        PUBLIC
+          ${SDL2_IMAGE_LIBRARIES}
+      )
+    endif()
+  endif()
+  if (VIX_GAME_ENABLE_OPENGL)
+    if (NOT VIX_GAME_ENABLE_SDL)
+      message(FATAL_ERROR "[game] OpenGL backend currently requires VIX_GAME_ENABLE_SDL=ON.")
+    endif()
+
+    find_package(OpenGL REQUIRED)
+
+    target_sources(vix_game
+      PRIVATE
+        ${GAME_OPENGL_SOURCES}
+    )
+
+    target_compile_definitions(vix_game
+      PUBLIC
+        VIX_GAME_HAS_OPENGL=1
+    )
+
     target_link_libraries(vix_game
       PUBLIC
-        ${SDL2_LIBRARIES}
+        OpenGL::GL
     )
   endif()
-
-  if (TARGET SDL2_image::SDL2_image)
-    target_link_libraries(vix_game
-      PUBLIC
-        SDL2_image::SDL2_image
-    )
-  else()
-    target_include_directories(vix_game
-      PUBLIC
-        ${SDL2_IMAGE_INCLUDE_DIRS}
-    )
-
-    target_link_libraries(vix_game
-      PUBLIC
-        ${SDL2_IMAGE_LIBRARIES}
-    )
-  endif()
-endif()
 
   if (NOT MSVC)
     target_compile_options(vix_game PRIVATE
@@ -538,6 +569,7 @@ endif()
 message(STATUS "Tests:             ${VIX_GAME_BUILD_TESTS}")
 message(STATUS "Examples:          ${VIX_GAME_BUILD_EXAMPLES}")
 message(STATUS "SDL backend:       ${VIX_GAME_ENABLE_SDL}")
+message(STATUS "OpenGL backend:    ${VIX_GAME_ENABLE_OPENGL}")
 message(STATUS "Include dir:       ${CMAKE_CURRENT_SOURCE_DIR}/include")
 message(STATUS "Build type:        ${CMAKE_BUILD_TYPE}")
 message(STATUS "------------------------------------------------------")

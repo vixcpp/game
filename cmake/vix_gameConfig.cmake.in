@@ -2,6 +2,9 @@
 
 include(CMakeFindDependencyMacro)
 
+set(VIX_GAME_WITH_SDL @VIX_GAME_ENABLE_SDL@)
+set(VIX_GAME_WITH_OPENGL @VIX_GAME_ENABLE_OPENGL@)
+
 find_dependency(vix_error CONFIG REQUIRED)
 find_dependency(vix_time CONFIG REQUIRED)
 find_dependency(vix_fs CONFIG REQUIRED)
@@ -10,6 +13,15 @@ find_dependency(vix_json CONFIG REQUIRED)
 find_dependency(vix_log CONFIG REQUIRED)
 find_dependency(vix_threadpool CONFIG REQUIRED)
 find_dependency(async CONFIG REQUIRED)
+
+if (VIX_GAME_WITH_SDL)
+  find_dependency(SDL2 REQUIRED)
+  find_dependency(SDL2_image REQUIRED)
+endif()
+
+if (VIX_GAME_WITH_OPENGL)
+  find_dependency(OpenGL REQUIRED)
+endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/vix_gameTargets.cmake")
 

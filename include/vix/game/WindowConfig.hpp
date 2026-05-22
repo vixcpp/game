@@ -74,6 +74,11 @@ namespace vix::game
     bool headless{false};
 
     /**
+     * @brief Whether the window should be created with OpenGL support.
+     */
+    bool opengl{false};
+
+    /**
      * @brief Create default window config.
      */
     [[nodiscard]] static WindowConfig defaults() noexcept;
