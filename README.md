@@ -432,6 +432,7 @@ AssetManager
   -> Renderer2D
   -> DrawSpriteCommand
   -> SDLRenderer::draw_sprite()
+```
 
 ## Runtime foundation
 
@@ -447,9 +448,7 @@ V3 introduced runtime layers:
 - `PhysicsRuntime`
 
 This separates raw systems from orchestration.
-
 Instead of placing every feature inside `App`, runtime-specific behavior now lives in dedicated runtime objects.
-
 This keeps the architecture clean as the module grows.
 
 ## Editor foundation
@@ -485,7 +484,6 @@ This avoids adding a heavy dependency too early while keeping the API direction 
 ## Audio foundation
 
 `AudioRuntime` currently stores audio source metadata and playback state.
-
 It prepares the API for future audio backends without requiring OpenAL, SDL audio, FMOD, or another dependency.
 
 It supports:
@@ -512,7 +510,6 @@ It supports:
 - fixed update integration
 
 It is not meant to replace Box2D or Bullet.
-
 It exists to provide a stable physics runtime surface where future backends can be integrated.
 
 ## Game package metadata
