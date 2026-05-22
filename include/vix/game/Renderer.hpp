@@ -24,6 +24,8 @@
 #include <vix/game/RenderCommand.hpp>
 #include <vix/game/RendererBackend.hpp>
 #include <vix/game/Window.hpp>
+#include <vix/game/DrawSpriteCommand.hpp>
+#include <vix/game/Asset.hpp>
 
 namespace vix::game
 {
@@ -85,6 +87,14 @@ namespace vix::game
     [[nodiscard]] GameBoolResult init(Window &window);
 
     /**
+     * @brief Upload an image asset as a renderer texture.
+     *
+     * @param asset Loaded image asset.
+     * @return true on success, or a structured error.
+     */
+    [[nodiscard]] GameBoolResult upload_texture(const Asset &asset);
+
+    /**
      * @brief Shut down the renderer.
      */
     void shutdown() noexcept;
@@ -105,6 +115,13 @@ namespace vix::game
      * @param color Clear color.
      */
     void clear(Color color = Color::black());
+
+    /**
+     * @brief Draw one 2D sprite command.
+     *
+     * @param command Sprite draw command.
+     */
+    void draw_sprite(const DrawSpriteCommand &command);
 
     /**
      * @brief Resize the renderer viewport or swapchain.

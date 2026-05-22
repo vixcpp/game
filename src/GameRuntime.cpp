@@ -17,6 +17,8 @@
 #include <vix/game/GameRuntime.hpp>
 #include <vix/game/App.hpp>
 #include <vix/game/GameError.hpp>
+#include <vix/game/Camera2D.hpp>
+#include <vix/game/WindowEvent.hpp>
 
 namespace vix::game
 {
@@ -80,17 +82,45 @@ namespace vix::game
   void GameRuntime::begin_frame(const Frame &frame)
   {
     (void)frame;
-    context_.begin_frame();
-  }
 
+    context_.begin_frame();
+
+    auto events = context_.window().poll_events();
+
+    for (const auto &event : events)
+    {
+      if (event.is_close_request())
+      {
+        context_.app().stop();
+      }
+
+      if (event.type == WindowEventType::Resized &&
+          event.width > 0 &&
+          event.height > 0)
+      {
+        context_.renderer().resize(event.width, event.height);
+        context_.renderer2d().set_camera(
+            Camera2D::from_size(event.width, event.height));
+      }
+
+      context_.input().handle_window_event(event);
+    }
+
+    auto &renderer2d = context_.renderer2d();
+
+    if (renderer2d.attached())
+    {
+      renderer2d.begin_frame();
+    }
+  }
   void GameRuntime::update(const Frame &frame)
   {
-    (void)frame;
+    context_.scenes().update(frame);
   }
 
   void GameRuntime::fixed_update(const Frame &frame)
   {
-    (void)frame;
+    context_.scenes().fixed_update(frame);
   }
 
   void GameRuntime::render(const Frame &frame)
@@ -104,7 +134,11 @@ namespace vix::game
       return;
     }
 
-    renderer2d.begin_frame();
+    if (!renderer2d.frame_active())
+    {
+      return;
+    }
+
     renderer2d.end_frame();
   }
 

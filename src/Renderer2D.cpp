@@ -59,6 +59,11 @@ namespace vix::game
   {
     if (renderer_)
     {
+      for (const auto &command : commands_)
+      {
+        renderer_->draw_sprite(command);
+      }
+
       renderer_->end_frame();
     }
 
@@ -85,6 +90,11 @@ namespace vix::game
       const Transform2D &transform,
       const Sprite &sprite)
   {
+    if (!frame_active_)
+    {
+      return;
+    }
+
     DrawSpriteCommand command;
     command.camera = camera;
     command.transform = transform;

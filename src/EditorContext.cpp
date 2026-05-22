@@ -24,6 +24,7 @@ namespace vix::game
         play_mode_(false),
         dirty_(false),
         selected_scene_(invalid_scene_id),
+        selected_entity_(invalid_entity_id),
         active_tool_()
   {
   }
@@ -90,6 +91,26 @@ namespace vix::game
     return selected_scene_;
   }
 
+  void EditorContext::select_entity(EntityId id) noexcept
+  {
+    selected_entity_ = id;
+  }
+
+  void EditorContext::clear_selected_entity() noexcept
+  {
+    selected_entity_ = invalid_entity_id;
+  }
+
+  EntityId EditorContext::selected_entity() const noexcept
+  {
+    return selected_entity_;
+  }
+
+  bool EditorContext::has_selected_entity() const noexcept
+  {
+    return is_valid_entity_id(selected_entity_);
+  }
+
   bool EditorContext::has_selected_scene() const noexcept
   {
     return is_valid_scene_id(selected_scene_);
@@ -131,6 +152,7 @@ namespace vix::game
     play_mode_ = false;
     dirty_ = false;
     selected_scene_ = invalid_scene_id;
+    selected_entity_ = invalid_entity_id;
     active_tool_.clear();
   }
 

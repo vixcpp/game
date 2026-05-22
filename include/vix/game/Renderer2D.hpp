@@ -25,43 +25,10 @@
 #include <vix/game/Renderer.hpp>
 #include <vix/game/Sprite.hpp>
 #include <vix/game/Transform2D.hpp>
+#include <vix/game/DrawSpriteCommand.hpp>
 
 namespace vix::game
 {
-  /**
-   * @brief One 2D draw command.
-   *
-   * DrawSpriteCommand stores the data needed to draw one sprite.
-   *
-   * Renderer2D can either submit this command immediately to a backend later,
-   * or keep it in a simple command list for V2.
-   */
-  struct DrawSpriteCommand
-  {
-    /**
-     * @brief Sprite transform.
-     */
-    Transform2D transform{};
-
-    /**
-     * @brief Sprite data.
-     */
-    Sprite sprite{};
-
-    /**
-     * @brief Camera used when the command was submitted.
-     */
-    Camera2D camera{};
-
-    /**
-     * @brief Return true if this command can be rendered.
-     */
-    [[nodiscard]] constexpr bool valid() const noexcept
-    {
-      return sprite.renderable() && camera.valid();
-    }
-  };
-
   /**
    * @brief Simple backend-independent 2D renderer facade.
    *

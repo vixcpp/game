@@ -73,6 +73,49 @@ namespace vix::game
     config.asset_root = vix::json::get_or<std::string>(json, "asset_root", config.asset_root);
     config.start_scene = vix::json::get_or<std::string>(json, "start_scene", config.start_scene);
     config.headless = vix::json::get_or<bool>(json, "headless", config.headless);
+    config.window.headless = config.headless;
+
+    if (json.contains("window") && json["window"].is_object())
+    {
+      const auto &window_json = json["window"];
+
+      config.window.title = vix::json::get_or<std::string>(
+          window_json,
+          "title",
+          config.window.title);
+
+      config.window.width = vix::json::get_or<std::uint32_t>(
+          window_json,
+          "width",
+          config.window.width);
+
+      config.window.height = vix::json::get_or<std::uint32_t>(
+          window_json,
+          "height",
+          config.window.height);
+
+      config.window.fullscreen = vix::json::get_or<bool>(
+          window_json,
+          "fullscreen",
+          config.window.fullscreen);
+
+      config.window.resizable = vix::json::get_or<bool>(
+          window_json,
+          "resizable",
+          config.window.resizable);
+
+      config.window.visible = vix::json::get_or<bool>(
+          window_json,
+          "visible",
+          config.window.visible);
+
+      config.window.vsync = vix::json::get_or<bool>(
+          window_json,
+          "vsync",
+          config.window.vsync);
+
+      config.window.headless = config.headless;
+    }
     config.log_startup = vix::json::get_or<bool>(json, "log_startup", config.log_startup);
     config.log_shutdown = vix::json::get_or<bool>(json, "log_shutdown", config.log_shutdown);
 
@@ -112,6 +155,19 @@ namespace vix::game
   vix::json::Json AppConfig::to_json() const
   {
     vix::json::Json json = vix::json::Json::object();
+
+    vix::json::Json window_json = vix::json::Json::object();
+
+    window_json["title"] = window.title;
+    window_json["width"] = window.width;
+    window_json["height"] = window.height;
+    window_json["fullscreen"] = window.fullscreen;
+    window_json["resizable"] = window.resizable;
+    window_json["visible"] = window.visible;
+    window_json["vsync"] = window.vsync;
+    window_json["headless"] = window.headless;
+
+    json["window"] = std::move(window_json);
 
     json["name"] = name;
     json["title"] = title;
@@ -163,6 +219,15 @@ namespace vix::game
       return make_game_error(
           GameErrorCode::ConfigInvalid,
           "fixed delta cannot be zero when fixed update is enabled");
+    }
+
+    if (!headless)
+    {
+      auto valid_window = window.validate();
+      if (!valid_window)
+      {
+        return valid_window.error();
+      }
     }
 
     return true;

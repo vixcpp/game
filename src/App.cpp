@@ -35,6 +35,7 @@ namespace vix::game
   App::App(AppConfig config)
       : config_(std::move(config)),
         loop_(config_.time_step),
+        runtime_(),
         scenes_(),
         events_(),
         assets_(),
@@ -65,6 +66,14 @@ namespace vix::game
 
     create_systems();
     configure_loop();
+
+    runtime_.attach(*this);
+
+    auto runtime_result = runtime_.init();
+    if (!runtime_result)
+    {
+      return runtime_result.error();
+    }
 
     if (config_.log_startup)
     {
@@ -124,6 +133,9 @@ namespace vix::game
     }
 
     stop();
+
+    runtime_.shutdown();
+    runtime_.detach();
 
     if (scenes_)
     {
@@ -199,6 +211,16 @@ namespace vix::game
   const GameLoop &App::loop() const noexcept
   {
     return loop_;
+  }
+
+  GameRuntime &App::runtime() noexcept
+  {
+    return runtime_;
+  }
+
+  const GameRuntime &App::runtime() const noexcept
+  {
+    return runtime_;
   }
 
   SceneManager &App::scenes()
@@ -326,10 +348,10 @@ namespace vix::game
               .set_field("frame", std::to_string(frame.index)));
     }
 
-    if (scenes_)
-    {
-      scenes_->update(frame);
-    }
+    runtime_.begin_frame(frame);
+    runtime_.update(frame);
+    runtime_.render(frame);
+    runtime_.end_frame(frame);
 
     if (events_)
     {
@@ -342,10 +364,7 @@ namespace vix::game
 
   void App::fixed_update(const Frame &frame)
   {
-    if (scenes_)
-    {
-      scenes_->fixed_update(frame);
-    }
+    runtime_.fixed_update(frame);
   }
 
 } // namespace vix::game

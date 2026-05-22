@@ -30,6 +30,12 @@ namespace vix::game
   class AssetManager;
   class JobSystem;
 
+  class GameContext;
+  class InputSystem;
+  class Window;
+  class Renderer;
+  class Renderer2D;
+
   /**
    * @brief Base class for game scenes.
    *
@@ -257,6 +263,41 @@ namespace vix::game
      * @warning Must only be called when attached() is true.
      */
     [[nodiscard]] JobSystem &jobs();
+
+    /**
+     * @brief Return the game context from the owning app runtime.
+     *
+     * @warning Must only be called when attached() is true.
+     */
+    [[nodiscard]] GameContext &context();
+
+    /**
+     * @brief Return the input system from the game context.
+     *
+     * @warning Must only be called when attached() is true.
+     */
+    [[nodiscard]] InputSystem &input();
+
+    /**
+     * @brief Return the window facade from the game context.
+     *
+     * @warning Must only be called when attached() is true.
+     */
+    [[nodiscard]] Window &window();
+
+    /**
+     * @brief Return the renderer facade from the game context.
+     *
+     * @warning Must only be called when attached() is true.
+     */
+    [[nodiscard]] Renderer &renderer();
+
+    /**
+     * @brief Return the 2D renderer facade from the game context.
+     *
+     * @warning Must only be called when attached() is true.
+     */
+    [[nodiscard]] Renderer2D &renderer2d();
 
   private:
     /**

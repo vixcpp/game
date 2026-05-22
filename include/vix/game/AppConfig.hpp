@@ -22,6 +22,7 @@
 #include <vix/game/GameResult.hpp>
 #include <vix/game/TimeStep.hpp>
 #include <vix/json/json.hpp>
+#include <vix/game/WindowConfig.hpp>
 
 namespace vix::game
 {
@@ -68,6 +69,11 @@ namespace vix::game
      * @brief Whether the app runs without graphics/windowing.
      */
     bool headless{true};
+
+    /**
+     * @brief Window configuration used by non-headless runtimes.
+     */
+    WindowConfig window{};
 
     /**
      * @brief Whether startup logs should be printed.

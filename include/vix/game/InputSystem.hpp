@@ -23,6 +23,7 @@
 #include <vix/game/InputKey.hpp>
 #include <vix/game/InputMap.hpp>
 #include <vix/game/InputState.hpp>
+#include <vix/game/WindowEvent.hpp>
 
 namespace vix::game
 {
@@ -66,6 +67,13 @@ namespace vix::game
      * This snapshots the previous state and clears per-frame deltas.
      */
     void begin_frame();
+
+    /**
+     * @brief Apply one backend-independent window event to the input state.
+     *
+     * @param event Window event produced by a window backend.
+     */
+    void handle_window_event(const WindowEvent &event);
 
     /**
      * @brief Mark a key as pressed.

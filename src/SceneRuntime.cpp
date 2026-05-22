@@ -118,6 +118,11 @@ namespace vix::game
     return context().scenes().active_name();
   }
 
+  SceneFileData SceneRuntime::inspect() const
+  {
+    return context().scenes().to_data();
+  }
+
   GameBoolResult SceneRuntime::save_file(const std::string &path) const
   {
     return SceneSerializer::save_file(context().scenes(), path);

@@ -25,6 +25,44 @@ namespace vix::game
     state_.begin_frame();
   }
 
+  void InputSystem::handle_window_event(const WindowEvent &event)
+  {
+    switch (event.type)
+    {
+    case WindowEventType::KeyPressed:
+      press_key(event.key);
+      break;
+
+    case WindowEventType::KeyReleased:
+      release_key(event.key);
+      break;
+
+    case WindowEventType::ButtonPressed:
+      press_button(event.button);
+      break;
+
+    case WindowEventType::ButtonReleased:
+      release_button(event.button);
+      break;
+
+    case WindowEventType::PointerMoved:
+      set_pointer_position(event.x, event.y);
+      add_pointer_delta(event.dx, event.dy);
+      break;
+
+    case WindowEventType::WheelMoved:
+      add_wheel_delta(event.dx, event.dy);
+      break;
+
+    case WindowEventType::Unknown:
+    case WindowEventType::CloseRequested:
+    case WindowEventType::Resized:
+    case WindowEventType::FocusGained:
+    case WindowEventType::FocusLost:
+      break;
+    }
+  }
+
   void InputSystem::press_key(InputKey key)
   {
     state_.press_key(key);

@@ -25,6 +25,7 @@
 #include <vix/game/GameLoop.hpp>
 #include <vix/game/GameResult.hpp>
 #include <vix/game/AsyncAssetLoader.hpp>
+#include <vix/game/GameRuntime.hpp>
 
 namespace vix::game
 {
@@ -229,6 +230,16 @@ namespace vix::game
      */
     App &set_target_fps(std::uint32_t fps) noexcept;
 
+    /**
+     * @brief Return the game runtime.
+     */
+    [[nodiscard]] GameRuntime &runtime() noexcept;
+
+    /**
+     * @brief Return the game runtime.
+     */
+    [[nodiscard]] const GameRuntime &runtime() const noexcept;
+
   private:
     /**
      * @brief Create owned subsystems.
@@ -266,6 +277,11 @@ namespace vix::game
      * @brief Main game loop.
      */
     GameLoop loop_{};
+
+    /**
+     * @brief High-level game runtime coordinator.
+     */
+    GameRuntime runtime_{};
 
     /**
      * @brief Scene manager.

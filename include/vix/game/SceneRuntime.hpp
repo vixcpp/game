@@ -204,6 +204,13 @@ namespace vix::game
     [[nodiscard]] std::string active_name() const;
 
     /**
+     * @brief Return a serializable snapshot of the scene manager.
+     *
+     * This is useful for editor tools, diagnostics, and scene inspection.
+     */
+    [[nodiscard]] SceneFileData inspect() const;
+
+    /**
      * @brief Save scene manager state to a file.
      *
      * @param path Destination file path.

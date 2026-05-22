@@ -21,6 +21,7 @@
 #include <vix/game/GameContext.hpp>
 #include <vix/game/GameResult.hpp>
 #include <vix/game/SceneId.hpp>
+#include <vix/game/EntityId.hpp>
 
 namespace vix::game
 {
@@ -126,6 +127,28 @@ namespace vix::game
     [[nodiscard]] SceneId selected_scene() const noexcept;
 
     /**
+     * @brief Select an entity.
+     *
+     * @param id Entity id.
+     */
+    void select_entity(EntityId id) noexcept;
+
+    /**
+     * @brief Clear the selected entity.
+     */
+    void clear_selected_entity() noexcept;
+
+    /**
+     * @brief Return the selected entity id.
+     */
+    [[nodiscard]] EntityId selected_entity() const noexcept;
+
+    /**
+     * @brief Return true if an entity is selected.
+     */
+    [[nodiscard]] bool has_selected_entity() const noexcept;
+
+    /**
      * @brief Return true if a scene is selected.
      */
     [[nodiscard]] bool has_selected_scene() const noexcept;
@@ -188,6 +211,11 @@ namespace vix::game
      * @brief Selected scene id.
      */
     SceneId selected_scene_{invalid_scene_id};
+
+    /**
+     * @brief Selected entity id.
+     */
+    EntityId selected_entity_{invalid_entity_id};
 
     /**
      * @brief Active editor tool.

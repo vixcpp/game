@@ -72,6 +72,25 @@ namespace vix::game
     return load_as(relative_path, type);
   }
 
+  GameResult<AssetId> AssetManager::load_or_get(
+      const std::string &relative_path)
+  {
+    if (relative_path.empty())
+    {
+      return make_game_error(
+          GameErrorCode::AssetInvalidPath,
+          "asset path cannot be empty");
+    }
+
+    const AssetId existing = cache_.id_for(relative_path);
+    if (is_valid_asset_id(existing))
+    {
+      return existing;
+    }
+
+    return load(relative_path);
+  }
+
   GameResult<AssetId> AssetManager::load_as(
       const std::string &relative_path,
       AssetType type)

@@ -91,6 +91,15 @@ namespace vix::game
     [[nodiscard]] GameResult<AssetId> load(const std::string &relative_path);
 
     /**
+     * @brief Load an asset if missing, otherwise return its existing id.
+     *
+     * @param relative_path Path relative to asset_root().
+     * @return Existing or loaded asset id, or a structured error.
+     */
+    [[nodiscard]] GameResult<AssetId> load_or_get(
+        const std::string &relative_path);
+
+    /**
      * @brief Load an asset by relative path and explicit type.
      *
      * @param relative_path Path relative to asset_root().

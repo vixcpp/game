@@ -20,6 +20,12 @@
 #include <vix/game/AssetManager.hpp>
 #include <vix/game/EventBus.hpp>
 #include <vix/game/JobSystem.hpp>
+#include <vix/game/GameContext.hpp>
+#include <vix/game/GameRuntime.hpp>
+#include <vix/game/InputSystem.hpp>
+#include <vix/game/Renderer.hpp>
+#include <vix/game/Renderer2D.hpp>
+#include <vix/game/Window.hpp>
 
 namespace vix::game
 {
@@ -36,6 +42,31 @@ namespace vix::game
   JobSystem &Scene::jobs()
   {
     return app().jobs();
+  }
+
+  GameContext &Scene::context()
+  {
+    return app().runtime().context();
+  }
+
+  InputSystem &Scene::input()
+  {
+    return context().input();
+  }
+
+  Window &Scene::window()
+  {
+    return context().window();
+  }
+
+  Renderer &Scene::renderer()
+  {
+    return context().renderer();
+  }
+
+  Renderer2D &Scene::renderer2d()
+  {
+    return context().renderer2d();
   }
 
 } // namespace vix::game

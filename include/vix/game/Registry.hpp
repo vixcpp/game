@@ -39,6 +39,16 @@ namespace vix::game
   class RegistryView;
 
   /**
+   * @brief Lightweight registry inspection stats.
+   */
+  struct RegistryStats
+  {
+    std::size_t entity_count{0};
+    std::size_t system_count{0};
+    std::size_t component_store_count{0};
+  };
+
+  /**
    * @brief Stores entities, components, and systems.
    *
    * Registry is the V1 ECS-style container used by vix/game.
@@ -413,6 +423,18 @@ namespace vix::game
       }
 
       return out;
+    }
+
+    /**
+     * @brief Return lightweight registry statistics.
+     */
+    [[nodiscard]] RegistryStats stats() const noexcept
+    {
+      RegistryStats result;
+      result.entity_count = entities_.size();
+      result.system_count = systems_.size();
+      result.component_store_count = component_stores_.size();
+      return result;
     }
 
   private:

@@ -15,7 +15,7 @@
  */
 
 #include <vix/game/NullRenderer.hpp>
-
+#include <vix/game/AssetType.hpp>
 #include <vix/game/GameError.hpp>
 
 namespace vix::game
@@ -53,6 +53,8 @@ namespace vix::game
     width_ = 0;
     height_ = 0;
     clear_color_ = Color::black();
+    sprite_count_ = 0;
+    uploaded_texture_count_ = 0;
   }
 
   void NullRenderer::begin_frame()
@@ -63,6 +65,7 @@ namespace vix::game
     }
 
     frame_active_ = true;
+    sprite_count_ = 0;
   }
 
   void NullRenderer::end_frame()
@@ -83,6 +86,21 @@ namespace vix::game
     }
 
     clear_color_ = color.clamped();
+  }
+
+  void NullRenderer::draw_sprite(const DrawSpriteCommand &command)
+  {
+    if (!initialized_ || !frame_active_ || !command.valid())
+    {
+      return;
+    }
+
+    ++sprite_count_;
+  }
+
+  std::uint64_t NullRenderer::sprite_count() const noexcept
+  {
+    return sprite_count_;
   }
 
   void NullRenderer::resize(
@@ -136,6 +154,45 @@ namespace vix::game
   Color NullRenderer::clear_color() const noexcept
   {
     return clear_color_;
+  }
+
+  GameBoolResult NullRenderer::upload_texture(const Asset &asset)
+  {
+    if (!initialized_)
+    {
+      return make_game_error(
+          GameErrorCode::InvalidState,
+          "renderer is not initialized");
+    }
+
+    if (!asset.valid())
+    {
+      return make_game_error(
+          GameErrorCode::InvalidArgument,
+          "texture asset id is invalid");
+    }
+
+    if (asset.type() != AssetType::Image)
+    {
+      return make_game_error(
+          GameErrorCode::InvalidArgument,
+          "texture asset must be an image");
+    }
+
+    if (!asset.binary())
+    {
+      return make_game_error(
+          GameErrorCode::InvalidArgument,
+          "texture asset must contain binary data");
+    }
+
+    ++uploaded_texture_count_;
+    return true;
+  }
+
+  std::uint64_t NullRenderer::uploaded_texture_count() const noexcept
+  {
+    return uploaded_texture_count_;
   }
 
 } // namespace vix::game

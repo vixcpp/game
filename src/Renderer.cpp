@@ -57,6 +57,18 @@ namespace vix::game
     return backend_->init(window);
   }
 
+  GameBoolResult Renderer::upload_texture(const Asset &asset)
+  {
+    if (!backend_)
+    {
+      return make_game_error(
+          GameErrorCode::InvalidState,
+          "renderer backend is not set");
+    }
+
+    return backend_->upload_texture(asset);
+  }
+
   void Renderer::shutdown() noexcept
   {
     if (backend_)
@@ -87,6 +99,16 @@ namespace vix::game
     {
       backend_->clear(color);
     }
+  }
+
+  void Renderer::draw_sprite(const DrawSpriteCommand &command)
+  {
+    if (!backend_ || !command.valid())
+    {
+      return;
+    }
+
+    backend_->draw_sprite(command);
   }
 
   void Renderer::resize(

@@ -22,6 +22,8 @@
 #include <vix/game/GameResult.hpp>
 #include <vix/game/RendererBackend.hpp>
 #include <vix/game/Window.hpp>
+#include <vix/game/DrawSpriteCommand.hpp>
+#include <vix/game/Asset.hpp>
 
 namespace vix::game
 {
@@ -137,6 +139,33 @@ namespace vix::game
      */
     [[nodiscard]] Color clear_color() const noexcept;
 
+    /**
+     * @brief Accept one sprite draw command.
+     *
+     * NullRenderer does not draw it, but counts it for tests and diagnostics.
+     *
+     * @param command Sprite draw command.
+     */
+    void draw_sprite(const DrawSpriteCommand &command) override;
+
+    /**
+     * @brief Return the number of accepted sprite draw commands.
+     */
+    [[nodiscard]] std::uint64_t sprite_count() const noexcept;
+
+    /**
+     * @brief Accept one image asset as a virtual texture.
+     *
+     * @param asset Loaded image asset.
+     * @return true on success, or a structured error.
+     */
+    [[nodiscard]] GameBoolResult upload_texture(const Asset &asset) override;
+
+    /**
+     * @brief Return the number of uploaded virtual textures.
+     */
+    [[nodiscard]] std::uint64_t uploaded_texture_count() const noexcept;
+
   private:
     /**
      * @brief Whether the null renderer is initialized.
@@ -162,6 +191,16 @@ namespace vix::game
      * @brief Last clear color.
      */
     Color clear_color_{Color::black()};
+
+    /**
+     * @brief Number of valid sprite draw commands received during the current frame.
+     */
+    std::uint64_t sprite_count_{0};
+
+    /**
+     * @brief Number of uploaded virtual textures.
+     */
+    std::uint64_t uploaded_texture_count_{0};
   };
 
 } // namespace vix::game
