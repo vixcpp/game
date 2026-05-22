@@ -99,4 +99,6 @@
 
 #include <vix/game/GamePackage.hpp>
 
+#include <vix/game/RuntimeDiagnostics.hpp>
+
 #endif // VIX_GAME_ALL_HPP

@@ -16,6 +16,8 @@
 
 #include <vix/game/EditorRuntime.hpp>
 #include <vix/game/GameError.hpp>
+#include <vix/game/Registry.hpp>
+#include <vix/game/SceneData.hpp>
 
 namespace vix::game
 {
@@ -157,4 +159,45 @@ namespace vix::game
     return *runtime_;
   }
 
+  RuntimeDiagnostics EditorRuntime::inspect_runtime() const
+  {
+    if (runtime_ == nullptr)
+    {
+      return RuntimeDiagnostics{};
+    }
+
+    return runtime_->diagnostics();
+  }
+
+  SceneFileData EditorRuntime::inspect_scenes() const
+  {
+    if (runtime_ == nullptr)
+    {
+      return SceneFileData{};
+    }
+
+    return runtime_->context().scenes().to_data();
+  }
+
+  RegistryStats EditorRuntime::inspect_registry() const
+  {
+    if (runtime_ == nullptr)
+    {
+      return RegistryStats{};
+    }
+
+    const auto *scene = runtime_->context().scenes().active();
+    if (scene == nullptr)
+    {
+      return RegistryStats{};
+    }
+
+    const auto *registry = scene->registry();
+    if (registry == nullptr)
+    {
+      return RegistryStats{};
+    }
+
+    return registry->stats();
+  }
 } // namespace vix::game

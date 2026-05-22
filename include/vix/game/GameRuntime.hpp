@@ -19,6 +19,7 @@
 #include <vix/game/Frame.hpp>
 #include <vix/game/GameContext.hpp>
 #include <vix/game/GameResult.hpp>
+#include <vix/game/RuntimeDiagnostics.hpp>
 
 namespace vix::game
 {
@@ -129,6 +130,11 @@ namespace vix::game
     void end_frame(const Frame &frame);
 
     /**
+     * @brief Return the latest runtime diagnostics snapshot.
+     */
+    [[nodiscard]] RuntimeDiagnostics diagnostics() const;
+
+    /**
      * @brief Return the runtime context.
      */
     [[nodiscard]] GameContext &context() noexcept;
@@ -143,6 +149,11 @@ namespace vix::game
      * @brief Runtime context.
      */
     GameContext context_{};
+
+    /**
+     * @brief Last runtime diagnostics snapshot.
+     */
+    RuntimeDiagnostics diagnostics_{};
 
     /**
      * @brief Whether init() completed.

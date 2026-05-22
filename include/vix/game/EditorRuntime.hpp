@@ -20,6 +20,9 @@
 #include <vix/game/Frame.hpp>
 #include <vix/game/GameResult.hpp>
 #include <vix/game/GameRuntime.hpp>
+#include <vix/game/Registry.hpp>
+#include <vix/game/RuntimeDiagnostics.hpp>
+#include <vix/game/SceneData.hpp>
 
 namespace vix::game
 {
@@ -151,6 +154,27 @@ namespace vix::game
      * @brief Return the game runtime.
      */
     [[nodiscard]] const GameRuntime &game_runtime() const;
+
+    /**
+     * @brief Inspect the current runtime diagnostics.
+     *
+     * @return Runtime diagnostics snapshot.
+     */
+    [[nodiscard]] RuntimeDiagnostics inspect_runtime() const;
+
+    /**
+     * @brief Inspect the current scene manager state.
+     *
+     * @return Serializable scene manager snapshot.
+     */
+    [[nodiscard]] SceneFileData inspect_scenes() const;
+
+    /**
+     * @brief Inspect the active scene registry.
+     *
+     * @return Registry stats for the active scene, or empty stats if unavailable.
+     */
+    [[nodiscard]] RegistryStats inspect_registry() const;
 
   private:
     /**

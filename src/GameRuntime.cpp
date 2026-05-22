@@ -19,6 +19,7 @@
 #include <vix/game/GameError.hpp>
 #include <vix/game/Camera2D.hpp>
 #include <vix/game/WindowEvent.hpp>
+#include <vix/game/Registry.hpp>
 
 namespace vix::game
 {
@@ -83,6 +84,8 @@ namespace vix::game
   {
     (void)frame;
 
+    diagnostics_.frame_index = frame.index;
+    diagnostics_.delta_ms = frame.delta_ms();
     context_.begin_frame();
 
     auto events = context_.window().poll_events();
@@ -139,12 +142,23 @@ namespace vix::game
       return;
     }
 
+    diagnostics_.sprite_command_count = renderer2d.command_count();
+
     renderer2d.end_frame();
   }
 
   void GameRuntime::end_frame(const Frame &frame)
   {
     (void)frame;
+
+    diagnostics_.window_backend = context_.window().backend_name();
+    diagnostics_.renderer_backend = context_.renderer().backend_name();
+    diagnostics_.window_width = context_.window().width();
+    diagnostics_.window_height = context_.window().height();
+    diagnostics_.loaded_asset_count = context_.assets().size();
+    diagnostics_.scene_count = context_.scenes().size();
+    diagnostics_.active_scene = context_.scenes().active_name();
+
     context_.end_frame();
   }
 
@@ -156,6 +170,11 @@ namespace vix::game
   const GameContext &GameRuntime::context() const noexcept
   {
     return context_;
+  }
+
+  RuntimeDiagnostics GameRuntime::diagnostics() const
+  {
+    return diagnostics_;
   }
 
 } // namespace vix::game

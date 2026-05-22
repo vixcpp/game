@@ -36,6 +36,8 @@ namespace vix::game
   class Renderer;
   class Renderer2D;
 
+  class Registry;
+
   /**
    * @brief Base class for game scenes.
    *
@@ -137,6 +139,28 @@ namespace vix::game
     virtual void on_fixed_update(const Frame &frame)
     {
       (void)frame;
+    }
+
+    /**
+     * @brief Return the scene registry if the scene owns one.
+     *
+     * Scenes are not required to use Registry. The default implementation returns
+     * nullptr.
+     */
+    [[nodiscard]] virtual Registry *registry() noexcept
+    {
+      return nullptr;
+    }
+
+    /**
+     * @brief Return the scene registry if the scene owns one.
+     *
+     * Scenes are not required to use Registry. The default implementation returns
+     * nullptr.
+     */
+    [[nodiscard]] virtual const Registry *registry() const noexcept
+    {
+      return nullptr;
     }
 
     /**

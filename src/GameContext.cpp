@@ -16,6 +16,7 @@
 
 #include <vix/game/GameContext.hpp>
 #include <vix/game/App.hpp>
+#include <utility>
 
 namespace vix::game
 {
@@ -149,6 +150,26 @@ namespace vix::game
   const Renderer2D &GameContext::renderer2d() const noexcept
   {
     return renderer2d_;
+  }
+
+  GameContext &GameContext::set_window_backend(
+      std::unique_ptr<WindowBackend> backend) noexcept
+  {
+    window_.set_backend(std::move(backend));
+    return *this;
+  }
+
+  GameContext &GameContext::set_renderer_backend(
+      std::unique_ptr<RendererBackend> backend) noexcept
+  {
+    renderer_.set_backend(std::move(backend));
+
+    if (!renderer2d_.attached())
+    {
+      renderer2d_.attach(renderer_);
+    }
+
+    return *this;
   }
 
   void GameContext::begin_frame()

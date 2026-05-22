@@ -16,6 +16,8 @@
 #ifndef VIX_GAME_GAME_CONTEXT_HPP
 #define VIX_GAME_GAME_CONTEXT_HPP
 
+#include <memory>
+
 #include <vix/game/AsyncAssetLoader.hpp>
 #include <vix/game/AssetManager.hpp>
 #include <vix/game/EventBus.hpp>
@@ -25,6 +27,8 @@
 #include <vix/game/Renderer2D.hpp>
 #include <vix/game/SceneManager.hpp>
 #include <vix/game/Window.hpp>
+#include <vix/game/RendererBackend.hpp>
+#include <vix/game/WindowBackend.hpp>
 
 namespace vix::game
 {
@@ -183,6 +187,24 @@ namespace vix::game
      * @brief Return the 2D renderer facade.
      */
     [[nodiscard]] const Renderer2D &renderer2d() const noexcept;
+
+    /**
+     * @brief Set the window backend used by the runtime window facade.
+     *
+     * @param backend Window backend implementation.
+     * @return Reference to this context.
+     */
+    GameContext &set_window_backend(
+        std::unique_ptr<WindowBackend> backend) noexcept;
+
+    /**
+     * @brief Set the renderer backend used by the runtime renderer facade.
+     *
+     * @param backend Renderer backend implementation.
+     * @return Reference to this context.
+     */
+    GameContext &set_renderer_backend(
+        std::unique_ptr<RendererBackend> backend) noexcept;
 
     /**
      * @brief Begin a runtime frame.

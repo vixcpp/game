@@ -396,7 +396,15 @@ This allows future support for:
 - software rendering
 - custom engine backends
 
-The current design keeps the module lightweight while leaving room for serious backend integrations.
+V4 adds the first real backend path:
+
+- `SDLWindow`
+- `SDLRenderer`
+- SDL input event mapping
+- SDL texture upload
+- SDL sprite rendering
+
+The null backends remain available for tests, CI, headless servers, and simulations.
 
 ## 2D rendering foundation
 
@@ -409,7 +417,21 @@ It supports:
 - active camera
 - sprite draw command collection
 
-The current implementation focuses on API structure and command collection. Real GPU rendering can be added later through renderer backends.
+V4 connects `Renderer2D` to real backend rendering through `DrawSpriteCommand`.
+
+The SDL backend can now upload image assets as textures and draw sprites through `SDLRenderer`.
+
+The flow is:
+
+```text
+AssetManager
+  -> Asset bytes
+  -> Renderer::upload_texture()
+  -> SDLRenderer texture store
+  -> Sprite
+  -> Renderer2D
+  -> DrawSpriteCommand
+  -> SDLRenderer::draw_sprite()
 
 ## Runtime foundation
 
@@ -602,15 +624,22 @@ This keeps game projects simple while still using the Vix build system internall
 
 ## Roadmap
 
-### V4 planned
+### V4 completed
 
-- real window backend integration
-- real renderer backend integration
-- sprite rendering backend
-- asset pipeline improvements
-- editor tool APIs
+- `GameRuntime` integrated as the main runtime coordinator
+- `GameContext` backend installation helpers
+- headless runtime flow with `NullWindow` and `NullRenderer`
+- SDL window backend
+- SDL input mapping
+- SDL window/input example
+- SDL renderer backend
+- SDL texture upload
+- SDL sprite rendering
+- sprite demo example
+- `RuntimeDiagnostics`
 - scene inspection APIs
-- runtime diagnostics
+- editor runtime inspection APIs
+- V4 architecture tests
 
 ### V5 planned
 
@@ -620,6 +649,8 @@ This keeps game projects simple while still using the Vix build system internall
 - game packaging command
 - game export workflow
 - project templates through `vix new game`
+- editor tool APIs
+- richer asset pipeline
 
 ## Design boundaries
 
@@ -646,6 +677,18 @@ From the module directory:
 vix build --build-target all -v -- -DVIX_GAME_BUILD_EXAMPLES=ON
 ```
 
+Build with SDL backend:
+Deps:
+```bash
+sudo apt update
+sudo apt install libsdl2-dev
+sudo apt install libsdl2-image-dev
+```
+
+```bash
+vix build --build-target all -v -- -DVIX_GAME_BUILD_TESTS=ON -DVIX_GAME_BUILD_EXAMPLES=ON -DVIX_GAME_ENABLE_SDL=ON
+```
+
 Run examples:
 
 ```bash
@@ -653,6 +696,10 @@ cd build-ninja/examples
 ./vix_game_hello_game
 ./vix_game_scene_demo
 ./vix_game_runtime_v3_demo
+./vix_game_sdl_window_null_renderer_demo
+./vix_game_window_input_demo
+./vix_game_sdl_renderer_demo
+./vix_game_sprite_demo
 ```
 
 ## Testing the generated game template

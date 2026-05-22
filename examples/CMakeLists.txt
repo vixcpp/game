@@ -19,6 +19,10 @@ set(VIX_GAME_EXAMPLES
   async_asset_loading
   scene_serialization
   runtime_v3_demo
+  sdl_window_null_renderer_demo
+  window_input_demo
+  sdl_renderer_demo
+  sprite_demo
 )
 
 foreach(example_name ${VIX_GAME_EXAMPLES})
