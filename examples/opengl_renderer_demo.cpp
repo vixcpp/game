@@ -10,7 +10,7 @@
 #include <memory>
 
 #include <vix/game/all.hpp>
-#include <vix/game/backends/opengl/OpenGLRenderer.hpp>
+#include <vix/game/backends/sdl/SDLOpenGLRenderer.hpp>
 #include <vix/game/backends/sdl/SDLWindow.hpp>
 #include <vix/print.hpp>
 
@@ -19,7 +19,7 @@ class OpenGLDemoScene final : public vix::game::Scene
 public:
   vix::game::GameBoolResult on_load() override
   {
-    vix::print("OpenGL scene loaded");
+    vix::print("SDL OpenGL scene loaded");
     return vix::game::Scene::on_load();
   }
 
@@ -35,7 +35,7 @@ public:
 
     if (frame.index % 60 == 0)
     {
-      vix::print("OpenGL frame:", frame.index);
+      vix::print("SDL OpenGL frame:", frame.index);
     }
   }
 };
@@ -44,7 +44,7 @@ int main()
 {
   vix::game::AppConfig config = vix::game::AppConfig::defaults();
   config.headless = false;
-  config.title = "Vix Game OpenGL Demo";
+  config.title = "Vix Game SDL OpenGL Demo";
 
   config.window = vix::game::WindowConfig::defaults();
   config.window.title = config.title;
@@ -69,7 +69,7 @@ int main()
 
   context
       .set_window_backend(std::make_unique<vix::game::sdl::SDLWindow>())
-      .set_renderer_backend(std::make_unique<vix::game::opengl::OpenGLRenderer>());
+      .set_renderer_backend(std::make_unique<vix::game::sdl::SDLOpenGLRenderer>());
 
   auto opened = context.window().open(config.window);
   if (!opened)

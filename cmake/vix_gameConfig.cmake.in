@@ -3,7 +3,7 @@
 include(CMakeFindDependencyMacro)
 
 set(VIX_GAME_WITH_SDL @VIX_GAME_ENABLE_SDL@)
-set(VIX_GAME_WITH_OPENGL @VIX_GAME_ENABLE_OPENGL@)
+set(VIX_GAME_WITH_SDL_OPENGL @VIX_GAME_ENABLE_SDL_OPENGL@)
 
 find_dependency(vix_error CONFIG REQUIRED)
 find_dependency(vix_time CONFIG REQUIRED)
@@ -19,7 +19,7 @@ if (VIX_GAME_WITH_SDL)
   find_dependency(SDL2_image REQUIRED)
 endif()
 
-if (VIX_GAME_WITH_OPENGL)
+if (VIX_GAME_WITH_SDL_OPENGL)
   find_dependency(OpenGL REQUIRED)
 endif()
 

@@ -1,6 +1,6 @@
 /**
  *
- *  @file OpenGLRenderer.hpp
+ *  @file SDLOpenGLRenderer.hpp
  *  @author Gaspard Kirira
  *
  *  Copyright 2026, Gaspard Kirira.
@@ -13,8 +13,8 @@
  *  Vix.cpp
  *
  */
-#ifndef VIX_GAME_BACKENDS_OPENGL_OPENGL_RENDERER_HPP
-#define VIX_GAME_BACKENDS_OPENGL_OPENGL_RENDERER_HPP
+#ifndef VIX_GAME_BACKENDS_SDL_SDL_OPENGL_RENDERER_HPP
+#define VIX_GAME_BACKENDS_SDL_SDL_OPENGL_RENDERER_HPP
 
 #include <cstdint>
 
@@ -27,23 +27,23 @@
 #include <vix/game/RendererBackend.hpp>
 #include <vix/game/Window.hpp>
 
-namespace vix::game::opengl
+namespace vix::game::sdl
 {
   /**
-   * @brief OpenGL renderer backend for vix/game.
+   * @brief OpenGL renderer backend using an SDL window and SDL OpenGL context.
    *
-   * The first version uses SDL only to create and own the OpenGL context.
-   * Rendering itself is done through OpenGL.
+   * This backend is intentionally named SDLOpenGLRenderer because the OpenGL
+   * context is created through SDL. It is not the future generic OpenGL backend.
    */
-  class OpenGLRenderer final : public RendererBackend
+  class SDLOpenGLRenderer final : public RendererBackend
   {
   public:
-    OpenGLRenderer() = default;
+    SDLOpenGLRenderer() = default;
 
-    OpenGLRenderer(const OpenGLRenderer &) = delete;
-    OpenGLRenderer &operator=(const OpenGLRenderer &) = delete;
+    SDLOpenGLRenderer(const SDLOpenGLRenderer &) = delete;
+    SDLOpenGLRenderer &operator=(const SDLOpenGLRenderer &) = delete;
 
-    ~OpenGLRenderer() override;
+    ~SDLOpenGLRenderer() override;
 
     [[nodiscard]] GameBoolResult init(Window &window) override;
 
@@ -88,6 +88,6 @@ namespace vix::game::opengl
     std::uint32_t height_{0};
   };
 
-} // namespace vix::game::opengl
+} // namespace vix::game::sdl
 
-#endif // VIX_GAME_BACKENDS_OPENGL_OPENGL_RENDERER_HPP
+#endif // VIX_GAME_BACKENDS_SDL_SDL_OPENGL_RENDERER_HPP

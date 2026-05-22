@@ -1,6 +1,6 @@
 /**
  *
- *  @file OpenGLRenderer.cpp
+ *  @file SDLOpenGLRenderer.cpp
  *  @author Gaspard Kirira
  *
  *  Copyright 2026, Gaspard Kirira.
@@ -14,7 +14,7 @@
  *
  */
 
-#include <vix/game/backends/opengl/OpenGLRenderer.hpp>
+#include <vix/game/backends/sdl/SDLOpenGLRenderer.hpp>
 
 #include <algorithm>
 
@@ -22,20 +22,20 @@
 
 #include <vix/game/GameError.hpp>
 
-namespace vix::game::opengl
+namespace vix::game::sdl
 {
-  OpenGLRenderer::~OpenGLRenderer()
+  SDLOpenGLRenderer::~SDLOpenGLRenderer()
   {
     shutdown();
   }
 
-  GameBoolResult OpenGLRenderer::init(Window &window)
+  GameBoolResult SDLOpenGLRenderer::init(Window &window)
   {
     if (!window.open())
     {
       return make_game_error(
           GameErrorCode::InvalidState,
-          "cannot initialize OpenGL renderer with a closed window");
+          "cannot initialize SDL OpenGL renderer with a closed window");
     }
 
     auto *native_window = static_cast<SDL_Window *>(window.native_handle());
@@ -43,7 +43,7 @@ namespace vix::game::opengl
     {
       return make_game_error(
           GameErrorCode::InvalidState,
-          "OpenGL renderer requires an SDL window native handle");
+          "SDL OpenGL renderer requires an SDL window native handle");
     }
 
     if (context_ != nullptr)
@@ -82,7 +82,7 @@ namespace vix::game::opengl
     {
       return make_game_error(
           GameErrorCode::InvalidArgument,
-          "OpenGL renderer size must be greater than zero");
+          "SDL OpenGL renderer size must be greater than zero");
     }
 
     glViewport(
@@ -97,13 +97,13 @@ namespace vix::game::opengl
     return true;
   }
 
-  GameBoolResult OpenGLRenderer::upload_texture(const Asset &asset)
+  GameBoolResult SDLOpenGLRenderer::upload_texture(const Asset &asset)
   {
     if (!initialized_)
     {
       return make_game_error(
           GameErrorCode::InvalidState,
-          "OpenGL renderer is not initialized");
+          "SDL OpenGL renderer is not initialized");
     }
 
     if (!asset.valid())
@@ -115,10 +115,10 @@ namespace vix::game::opengl
 
     return make_game_error(
         GameErrorCode::InvalidState,
-        "OpenGL texture upload is not implemented yet");
+        "SDL OpenGL texture upload is not implemented yet");
   }
 
-  void OpenGLRenderer::shutdown() noexcept
+  void SDLOpenGLRenderer::shutdown() noexcept
   {
     if (context_ != nullptr)
     {
@@ -133,7 +133,7 @@ namespace vix::game::opengl
     height_ = 0;
   }
 
-  void OpenGLRenderer::begin_frame()
+  void SDLOpenGLRenderer::begin_frame()
   {
     if (!initialized_)
     {
@@ -143,7 +143,7 @@ namespace vix::game::opengl
     frame_active_ = true;
   }
 
-  void OpenGLRenderer::end_frame()
+  void SDLOpenGLRenderer::end_frame()
   {
     if (!initialized_ || window_ == nullptr)
     {
@@ -154,7 +154,7 @@ namespace vix::game::opengl
     frame_active_ = false;
   }
 
-  void OpenGLRenderer::clear(Color color)
+  void SDLOpenGLRenderer::clear(Color color)
   {
     if (!initialized_)
     {
@@ -172,12 +172,12 @@ namespace vix::game::opengl
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
-  void OpenGLRenderer::draw_sprite(const DrawSpriteCommand &command)
+  void SDLOpenGLRenderer::draw_sprite(const DrawSpriteCommand &command)
   {
     (void)command;
   }
 
-  void OpenGLRenderer::resize(
+  void SDLOpenGLRenderer::resize(
       std::uint32_t width,
       std::uint32_t height)
   {
@@ -199,39 +199,39 @@ namespace vix::game::opengl
     }
   }
 
-  bool OpenGLRenderer::initialized() const noexcept
+  bool SDLOpenGLRenderer::initialized() const noexcept
   {
     return initialized_;
   }
 
-  std::uint32_t OpenGLRenderer::width() const noexcept
+  std::uint32_t SDLOpenGLRenderer::width() const noexcept
   {
     return width_;
   }
 
-  std::uint32_t OpenGLRenderer::height() const noexcept
+  std::uint32_t SDLOpenGLRenderer::height() const noexcept
   {
     return height_;
   }
 
-  const char *OpenGLRenderer::backend_name() const noexcept
+  const char *SDLOpenGLRenderer::backend_name() const noexcept
   {
-    return "opengl";
+    return "sdl-opengl";
   }
 
-  void *OpenGLRenderer::native_handle() noexcept
-  {
-    return context_;
-  }
-
-  const void *OpenGLRenderer::native_handle() const noexcept
+  void *SDLOpenGLRenderer::native_handle() noexcept
   {
     return context_;
   }
 
-  bool OpenGLRenderer::frame_active() const noexcept
+  const void *SDLOpenGLRenderer::native_handle() const noexcept
+  {
+    return context_;
+  }
+
+  bool SDLOpenGLRenderer::frame_active() const noexcept
   {
     return frame_active_;
   }
 
-} // namespace vix::game::opengl
+} // namespace vix::game::sdl
