@@ -28,6 +28,7 @@ set(VIX_GAME_TEST_SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/TimeStepTests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/runtime_v4_architecture_tests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/headless_runtime_tests.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game_exporter_tests.cpp"
 )
 
 add_executable(vix_game_tests

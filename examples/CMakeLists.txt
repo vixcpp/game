@@ -23,6 +23,7 @@ set(VIX_GAME_EXAMPLES
   window_input_demo
   sdl_renderer_demo
   sprite_demo
+  export_project
 )
 
 foreach(example_name ${VIX_GAME_EXAMPLES})

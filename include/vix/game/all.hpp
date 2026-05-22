@@ -100,5 +100,10 @@
 #include <vix/game/GamePackage.hpp>
 
 #include <vix/game/RuntimeDiagnostics.hpp>
+#include <vix/game/GameExportConfig.hpp>
+#include <vix/game/GameExporter.hpp>
+#include <vix/game/GameExportManifest.hpp>
+#include <vix/game/GameAssetPipeline.hpp>
+#include <vix/game/GameExportAsset.hpp>
 
 #endif // VIX_GAME_ALL_HPP

@@ -72,7 +72,13 @@ Current foundation includes:
 - audio runtime foundation
 - physics runtime foundation
 - game package metadata
+- game export configuration
+- game export workflow
+- export manifest generation
+- asset pipeline scanning
+- exported asset metadata
 - `vix new --game` project template
+- `vix game export` CLI command
 
 ## Who is this for?
 
@@ -536,6 +542,91 @@ This is the base for future workflows:
 - asset packaging
 - distribution metadata
 
+## Game export workflow
+
+V5 adds a complete game export workflow.
+
+A game project can now be exported with:
+
+```bash
+vix game export
+```
+The command reads game.package.json, scans the asset root, copies exportable files, and generates an export manifest.
+
+Example output:
+```txt
+✔ Game exported.
+  • Output    : ./dist/mario
+  • Name      : mario
+  • Version   : 0.1.0
+  • Asset root: assets
+  • Copied files: 4
+  • Copied directories: 1
+```
+
+Generated layout:
+```txt
+dist/
+  mario/
+    assets/
+    game.package.json
+    README.md
+    export.json
+```
+
+export.json contains:
+
+- game name
+- version
+- asset root
+- output path
+- copied file count
+- copied directory count
+- build date
+- exported asset list
+
+This makes the game export process inspectable and suitable for future packaging, editor tooling, release workflows, and distribution metadata.
+
+## Asset export pipeline
+
+V5 adds a small asset export pipeline.
+
+The pipeline scans the configured asset root and classifies exported assets.
+
+Supported asset categories:
+
+- image
+- text
+- binary
+
+It ignores temporary and cache files such as:
+
+- `.gitkeep`
+- `.DS_Store`
+- `Thumbs.db`
+- `cache/`
+- `tmp/`
+- `temp/`
+- `build/`
+- `dist/`
+- `*.tmp`
+- `*.cache`
+- `*.log`
+
+The exported asset list is written into `export.json`.
+
+Example:
+
+```json
+{
+  "path": "player.png",
+  "type": "image",
+  "size_bytes": 1024
+}
+```
+The pipeline does not transform, compress, hash, or bundle assets yet.
+It only discovers, classifies, and records them.
+
 ## Project manifest
 
 A generated game project uses `vix.app`.
@@ -638,16 +729,37 @@ This keeps game projects simple while still using the Vix build system internall
 - editor runtime inspection APIs
 - V4 architecture tests
 
-### V5 planned
+### V5 completed
+
+- `GameExportConfig`
+- `GameExporter`
+- `GameExportManifest`
+- `GameExportAsset`
+- `GameAssetPipeline`
+- `export.json` generation
+- asset scanning
+- asset type detection
+- temporary/cache asset filtering
+- `GamePackage` integration with exporter
+- `vix new --game` V5 template
+- generated `game.package.json`
+- generated `assets/`
+- generated README
+- generated `Scene + GameRuntime` example
+- `vix game export` CLI command
+- `vix dev` behavior fixed for short-lived game applications
+
+### V6 planned
 
 - scripting backend integration
 - audio backend integration
 - physics backend integration
-- game packaging command
-- game export workflow
-- project templates through `vix new game`
 - editor tool APIs
-- richer asset pipeline
+- asset hashing
+- asset bundling
+- export profiles
+- release packaging
+- richer project templates
 
 ## Design boundaries
 
@@ -697,6 +809,7 @@ cd build-ninja/examples
 ./vix_game_window_input_demo
 ./vix_game_sdl_renderer_demo
 ./vix_game_sprite_demo
+./vix_game_export_project
 ```
 
 ## Testing the generated game template
@@ -705,7 +818,16 @@ cd build-ninja/examples
 vix new mario --game
 cd mario
 vix build
-vix run
+vix dev
+vix game export
+```
+
+```text
+dist/mario/
+  assets/
+  game.package.json
+  README.md
+  export.json
 ```
 
 Expected output:
