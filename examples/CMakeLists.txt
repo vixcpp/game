@@ -19,12 +19,19 @@ set(VIX_GAME_EXAMPLES
   async_asset_loading
   scene_serialization
   runtime_v3_demo
+  export_project
+)
+
+set(VIX_GAME_SDL_EXAMPLES
   sdl_window_null_renderer_demo
   window_input_demo
   sdl_renderer_demo
   sprite_demo
-  export_project
 )
+
+if (VIX_GAME_ENABLE_SDL)
+  list(APPEND VIX_GAME_EXAMPLES ${VIX_GAME_SDL_EXAMPLES})
+endif()
 
 foreach(example_name ${VIX_GAME_EXAMPLES})
   set(example_source "${CMAKE_CURRENT_SOURCE_DIR}/${example_name}.cpp")
@@ -58,3 +65,7 @@ foreach(example_name ${VIX_GAME_EXAMPLES})
     )
   endif()
 endforeach()
+
+if (NOT VIX_GAME_ENABLE_SDL)
+  message(STATUS "[game/examples] SDL examples disabled. Enable with -DVIX_GAME_ENABLE_SDL=ON.")
+endif()
