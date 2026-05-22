@@ -18,4 +18,22 @@
 
 #include <vix/game/all.hpp>
 
+#include <vix/game/App.hpp>
+#include <vix/game/AppConfig.hpp>
+#include <vix/game/GameRuntime.hpp>
+#include <vix/game/GameContext.hpp>
+
+#include <vix/game/Scene.hpp>
+#include <vix/game/SceneManager.hpp>
+
+#include <vix/game/AssetManager.hpp>
+#include <vix/game/InputSystem.hpp>
+
+#include <vix/game/Window.hpp>
+#include <vix/game/WindowConfig.hpp>
+
+#include <vix/game/Renderer.hpp>
+#include <vix/game/Renderer2D.hpp>
+#include <vix/game/Camera2D.hpp>
+
 #endif // VIX_GAME_GAME_HPP
