@@ -20,7 +20,6 @@ set(VIX_GAME_EXAMPLES
   scene_serialization
   runtime_v3_demo
   export_project
-  opengl_renderer_demo
 )
 
 set(VIX_GAME_SDL_EXAMPLES
@@ -30,8 +29,17 @@ set(VIX_GAME_SDL_EXAMPLES
   sprite_demo
 )
 
+set(VIX_GAME_SDL_OPENGL_EXAMPLES
+  opengl_renderer_demo
+  tiny_adventure
+)
+
 if (VIX_GAME_ENABLE_SDL)
   list(APPEND VIX_GAME_EXAMPLES ${VIX_GAME_SDL_EXAMPLES})
+endif()
+
+if (VIX_GAME_ENABLE_SDL_OPENGL)
+  list(APPEND VIX_GAME_EXAMPLES ${VIX_GAME_SDL_OPENGL_EXAMPLES})
 endif()
 
 foreach(example_name ${VIX_GAME_EXAMPLES})
@@ -69,4 +77,8 @@ endforeach()
 
 if (NOT VIX_GAME_ENABLE_SDL)
   message(STATUS "[game/examples] SDL examples disabled. Enable with -DVIX_GAME_ENABLE_SDL=ON.")
+endif()
+
+if (NOT VIX_GAME_ENABLE_SDL_OPENGL)
+  message(STATUS "[game/examples] SDL OpenGL examples disabled. Enable with -DVIX_GAME_ENABLE_SDL_OPENGL=ON.")
 endif()

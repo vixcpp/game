@@ -20,7 +20,7 @@
 #include <vix/game/Vec2.hpp>
 #include <vix/game/WindowConfig.hpp>
 
-#include <vix/game/backends/sdl/SDLRenderer.hpp>
+#include <vix/game/backends/sdl/SDLOpenGLRenderer.hpp>
 #include <vix/game/backends/sdl/SDLWindow.hpp>
 
 class SpriteDemoScene final : public vix::game::Scene
@@ -99,6 +99,7 @@ int main()
   config.window.visible = true;
   config.window.vsync = true;
   config.window.headless = false;
+  config.window.opengl = true;
 
   vix::game::App app(config);
 
@@ -112,7 +113,7 @@ int main()
 
   context
       .set_window_backend(std::make_unique<vix::game::sdl::SDLWindow>())
-      .set_renderer_backend(std::make_unique<vix::game::sdl::SDLRenderer>());
+      .set_renderer_backend(std::make_unique<vix::game::sdl::SDLOpenGLRenderer>());
 
   auto opened = context.window().open(config.window);
   if (!opened)
