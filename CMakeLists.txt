@@ -79,6 +79,14 @@ file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
+file(GLOB_RECURSE GAME_SDL_SOURCES CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/backends/sdl/*.cpp"
+)
+
+if (GAME_SDL_SOURCES)
+  list(REMOVE_ITEM GAME_SOURCES ${GAME_SDL_SOURCES})
+endif()
+
 # --------------------------------------------------------------------
 # Dependency resolver for game public dependencies
 # --------------------------------------------------------------------

@@ -1,0 +1,195 @@
+name: Game SDL CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - dev
+      - release/**
+    paths:
+      - ".github/workflows/game-sdl-ci.yml"
+      - "CMakeLists.txt"
+      - "cmake/**"
+      - "include/**"
+      - "src/**"
+      - "tests/**"
+      - "examples/**"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "vix.json"
+
+  pull_request:
+    branches:
+      - main
+      - master
+      - dev
+      - release/**
+    paths:
+      - ".github/workflows/game-sdl-ci.yml"
+      - "CMakeLists.txt"
+      - "cmake/**"
+      - "include/**"
+      - "src/**"
+      - "tests/**"
+      - "examples/**"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "vix.json"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BUILD_JOBS: 2
+  VIX_GIT_BRANCH: dev
+
+jobs:
+  sdl-build:
+    name: Build Game SDL backend
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - gcc
+          - clang
+
+    steps:
+      - name: Checkout game repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            cmake \
+            ninja-build \
+            clang \
+            g++ \
+            pkg-config \
+            git \
+            curl \
+            ca-certificates \
+            libasio-dev \
+            nlohmann-json3-dev \
+            libspdlog-dev \
+            libfmt-dev \
+            libsdl2-dev \
+            libsdl2-image-dev
+
+          test -f /usr/include/asio.hpp || (echo "::error::System Asio header not found"; exit 1)
+          pkg-config --exists sdl2 || (echo "::error::SDL2 pkg-config package not found"; exit 1)
+          pkg-config --exists SDL2_image || (echo "::error::SDL2_image pkg-config package not found"; exit 1)
+
+      - name: Select compiler
+        run: |
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            echo "CC=clang" >> "$GITHUB_ENV"
+            echo "CXX=clang++" >> "$GITHUB_ENV"
+          else
+            echo "CC=gcc" >> "$GITHUB_ENV"
+            echo "CXX=g++" >> "$GITHUB_ENV"
+          fi
+
+      - name: Fetch sibling dependencies
+        run: |
+          set -euxo pipefail
+
+          rm -rf \
+            ../error \
+            ../path \
+            ../fs \
+            ../time \
+            ../json \
+            ../utils \
+            ../log \
+            ../threadpool \
+            ../async \
+            ../io
+
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/error.git ../error
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/path.git ../path
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/fs.git ../fs
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/time.git ../time
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/json.git ../json
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/utils.git ../utils
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/log.git ../log
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/threadpool.git ../threadpool
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" --recurse-submodules https://github.com/vixcpp/async.git ../async
+          git clone --depth 1 --branch "${VIX_GIT_BRANCH}" https://github.com/vixcpp/io.git ../io
+
+          git -C ../async submodule update --init --recursive --depth 1 || true
+
+      - name: Prepare Asio for async
+        run: |
+          set -euxo pipefail
+
+          mkdir -p ../async/third_party/asio
+          rm -rf ../async/third_party/asio/include
+          mkdir -p ../async/third_party/asio/include
+          cp -r /usr/include/asio* ../async/third_party/asio/include/ || true
+
+          test -f ../async/third_party/asio/include/asio.hpp
+
+      - name: Export dependency include paths
+        run: |
+          EXTRA_PATHS="$GITHUB_WORKSPACE/../error/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../path/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../fs/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../time/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../json/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../utils/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../log/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../threadpool/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../async/include"
+          EXTRA_PATHS="$EXTRA_PATHS:$GITHUB_WORKSPACE/../io/include"
+
+          echo "CPATH=$EXTRA_PATHS${CPATH:+:$CPATH}" >> "$GITHUB_ENV"
+          echo "CPLUS_INCLUDE_PATH=$EXTRA_PATHS${CPLUS_INCLUDE_PATH:+:$CPLUS_INCLUDE_PATH}" >> "$GITHUB_ENV"
+
+      - name: Configure SDL build
+        run: |
+          cmake -S . -B build-sdl -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DVIX_ENABLE_SANITIZERS=OFF \
+            -DVIX_GAME_ENABLE_SDL=ON \
+            -DVIX_GAME_BUILD_TESTS=ON \
+            -DVIX_GAME_BUILD_EXAMPLES=ON \
+            -DVIX_GAME_FETCH_ERROR=OFF \
+            -DVIX_GAME_FETCH_TIME=OFF \
+            -DVIX_GAME_FETCH_FS=OFF \
+            -DVIX_GAME_FETCH_PATH=OFF \
+            -DVIX_GAME_FETCH_JSON=OFF \
+            -DVIX_GAME_FETCH_LOG=OFF \
+            -DVIX_GAME_FETCH_THREADPOOL=OFF \
+            -DVIX_GAME_FETCH_ASYNC=OFF \
+            -DVIX_GAME_FETCH_IO=OFF \
+            -DVIX_LOG_FETCH_UTILS=OFF \
+            -DVIX_LOG_BUILD_TESTS=OFF \
+            -DVIX_IO_BUILD_TESTS=OFF \
+            -DVIX_IO_FETCH_ERROR=OFF \
+            -DVIX_TIME_BUILD_TESTS=OFF \
+            -DVIX_TIME_BUILD_BENCH=OFF \
+            -DVIX_THREADPOOL_BUILD_EXAMPLES=OFF \
+            -DVIX_THREADPOOL_BUILD_TESTS=OFF \
+            -DVIX_THREADPOOL_BUILD_BENCHMARKS=OFF
+
+      - name: Build SDL backend
+        run: |
+          cmake --build build-sdl -j"${BUILD_JOBS}"
+
+      - name: Run tests
+        run: |
+          ctest --test-dir build-sdl --output-on-failure --timeout 90
+
+      - name: Print SDL artifacts
+        run: |
+          find build-sdl -maxdepth 6 -type f | sort
