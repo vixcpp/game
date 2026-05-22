@@ -82,7 +82,9 @@ jobs:
             libspdlog-dev \
             libfmt-dev \
             libsdl2-dev \
-            libsdl2-image-dev
+            libsdl2-image-dev \
+            libgl1-mesa-dev \
+            mesa-common-dev
 
           test -f /usr/include/asio.hpp || (echo "::error::System Asio header not found"; exit 1)
           pkg-config --exists sdl2 || (echo "::error::SDL2 pkg-config package not found"; exit 1)
@@ -161,6 +163,7 @@ jobs:
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DVIX_ENABLE_SANITIZERS=OFF \
             -DVIX_GAME_ENABLE_SDL=ON \
+            -DVIX_GAME_ENABLE_SDL_OPENGL=ON \
             -DVIX_GAME_BUILD_TESTS=ON \
             -DVIX_GAME_BUILD_EXAMPLES=ON \
             -DVIX_GAME_FETCH_ERROR=OFF \
