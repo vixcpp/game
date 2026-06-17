@@ -56,5 +56,18 @@ if (NOT MSVC)
   )
 endif()
 
+if (VIX_ENABLE_SANITIZERS AND NOT MSVC)
+  target_compile_options(vix_game_tests
+    PRIVATE
+      -fno-omit-frame-pointer
+      -fsanitize=address,undefined
+  )
+
+  target_link_options(vix_game_tests
+    PRIVATE
+      -fsanitize=address,undefined
+  )
+endif()
+
 include(GoogleTest)
 gtest_discover_tests(vix_game_tests)
