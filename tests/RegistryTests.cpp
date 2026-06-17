@@ -17,6 +17,8 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <memory>
+#include <utility>
 
 #include <vix/game/Frame.hpp>
 #include <vix/game/Registry.hpp>
@@ -227,17 +229,34 @@ TEST(RegistryTests, ClearRemovesEverything)
   auto entity = registry.create_entity("player");
   ASSERT_TRUE(registry.emplace_component<Position>(entity.id(), 10.0F, 20.0F));
 
-  auto system = std::make_unique<CountingSystem>();
-  auto *raw = system.get();
+  auto stopped_count = std::make_shared<int>(0);
 
-  ASSERT_TRUE(registry.add_system(std::move(system)));
+  class ClearCountingSystem final : public vix::game::System
+  {
+  public:
+    explicit ClearCountingSystem(std::shared_ptr<int> stopped)
+        : stopped_(std::move(stopped))
+    {
+    }
+
+    void on_stop() override
+    {
+      ++(*stopped_);
+      vix::game::System::on_stop();
+    }
+
+  private:
+    std::shared_ptr<int> stopped_;
+  };
+
+  ASSERT_TRUE(registry.add_system(std::make_unique<ClearCountingSystem>(stopped_count)));
 
   registry.clear();
 
   EXPECT_EQ(registry.entity_count(), 0u);
   EXPECT_EQ(registry.system_count(), 0u);
   EXPECT_TRUE(registry.empty());
-  EXPECT_EQ(raw->stopped_count, 1);
+  EXPECT_EQ(*stopped_count, 1);
 }
 
 TEST(RegistryTests, EntitiesReturnsEntityList)
