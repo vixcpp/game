@@ -28,12 +28,26 @@ namespace
 {
   struct Position
   {
+    Position() = default;
+
+    Position(float px, float py)
+        : x(px), y(py)
+    {
+    }
+
     float x{0.0F};
     float y{0.0F};
   };
 
   struct Velocity
   {
+    Velocity() = default;
+
+    Velocity(float vx, float vy)
+        : dx(vx), dy(vy)
+    {
+    }
+
     float dx{0.0F};
     float dy{0.0F};
   };
@@ -263,8 +277,11 @@ TEST(RegistryTests, EntitiesReturnsEntityList)
 {
   vix::game::Registry registry;
 
-  registry.create_entity("a");
-  registry.create_entity("b");
+  auto entity_a = registry.create_entity("a");
+  auto entity_b = registry.create_entity("b");
+
+  EXPECT_TRUE(entity_a.valid());
+  EXPECT_TRUE(entity_b.valid());
 
   auto entities = registry.entities();
 
