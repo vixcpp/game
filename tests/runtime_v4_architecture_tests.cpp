@@ -77,8 +77,10 @@ namespace
     {
       (void)frame;
 
-      saw_input = &input() != nullptr;
-      saw_renderer2d = &renderer2d() != nullptr;
+      (void)input();
+      (void)renderer2d();
+      saw_input = true;
+      saw_renderer2d = true;
     }
   };
 
