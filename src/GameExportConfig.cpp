@@ -19,6 +19,25 @@
 
 namespace vix::game
 {
+  namespace
+  {
+    bool safe_relative_path(const std::filesystem::path &path)
+    {
+      if (path.empty() || path.is_absolute())
+      {
+        return false;
+      }
+      for (const auto &part : path.lexically_normal())
+      {
+        if (part == "..")
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+
   GameBoolResult GameExportConfig::validate() const
   {
     if (project_root.empty())
@@ -40,6 +59,21 @@ namespace vix::game
       return make_game_error(
           GameErrorCode::InvalidArgument,
           "game export name cannot be empty");
+    }
+
+    if (std::filesystem::path(name).has_parent_path() || name == "." || name == "..")
+    {
+      return make_game_error(GameErrorCode::InvalidArgument,
+                             "game export name must be a single directory name");
+    }
+
+    if (!safe_relative_path(asset_directory) ||
+        !safe_relative_path(source_directory) ||
+        !safe_relative_path(package_file) ||
+        !safe_relative_path(readme_file))
+    {
+      return make_game_error(GameErrorCode::InvalidArgument,
+                             "game export project paths must be safe relative paths");
     }
 
     if (!std::filesystem::exists(project_root))

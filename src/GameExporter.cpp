@@ -64,6 +64,7 @@ namespace vix::game
     auto export_version = std::string{"0.1.0"};
     auto output_directory = config.output_directory;
     auto asset_directory = config.asset_directory;
+    auto source_directory = config.source_directory;
 
     const auto package_path = config.project_root / config.package_file;
 
@@ -80,6 +81,7 @@ namespace vix::game
       export_version = package.value().version;
       output_directory = package.value().output_dir;
       asset_directory = package.value().asset_root;
+      source_directory = package.value().source_root;
     }
 
     const auto export_root = config.project_root / output_directory / export_name;
@@ -146,6 +148,34 @@ namespace vix::game
       result.copied_files += copied.value().copied_files;
       result.copied_directories += copied.value().copied_directories;
     }
+
+    if (config.copy_source)
+    {
+      auto copied = copy_directory_if_exists(
+          config.project_root / source_directory,
+          export_root / source_directory);
+
+      if (!copied)
+      {
+        return copied.error();
+      }
+
+      result.copied_files += copied.value().copied_files;
+      result.copied_directories += copied.value().copied_directories;
+    }
+
+    // A minimal CMake project remains buildable after source export when the
+    // project provides its normal root build file. Its absence is allowed for
+    // projects built by another toolchain.
+    auto copied_cmake = copy_file_if_exists(
+        config.project_root / "CMakeLists.txt",
+        export_root / "CMakeLists.txt");
+    if (!copied_cmake)
+    {
+      return copied_cmake.error();
+    }
+    result.copied_files += copied_cmake.value();
+
     if (config.copy_package_file)
     {
       auto copied = copy_file_if_exists(
@@ -181,7 +211,9 @@ namespace vix::game
     manifest.version = result.version;
     manifest.asset_root = result.asset_root;
     manifest.assets = exported_assets;
-    manifest.output_path = result.output_path.string();
+    // The manifest is portable: its output directory is the directory that
+    // contains it, never a machine-specific absolute path.
+    manifest.output_path = ".";
     manifest.copied_files = result.copied_files;
     manifest.copied_directories = result.copied_directories;
     manifest.build_date = make_build_date();

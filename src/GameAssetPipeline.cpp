@@ -145,6 +145,14 @@ namespace vix::game
       }
     }
 
+    std::sort(
+        assets.begin(),
+        assets.end(),
+        [](const GameExportAsset &left, const GameExportAsset &right)
+        {
+          return left.path < right.path;
+        });
+
     return assets;
   }
 

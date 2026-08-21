@@ -48,6 +48,9 @@ namespace vix::game
      */
     std::filesystem::path asset_directory{"assets"};
 
+    /** Source directory relative to project_root. */
+    std::filesystem::path source_directory{"src"};
+
     /**
      * @brief Game package file relative to the project root.
      */
@@ -69,6 +72,9 @@ namespace vix::game
      * @brief Whether assets should be copied.
      */
     bool copy_assets{true};
+
+    /** Whether project C++ sources should be copied when present. */
+    bool copy_source{true};
 
     /**
      * @brief Whether game.package.json should be copied.

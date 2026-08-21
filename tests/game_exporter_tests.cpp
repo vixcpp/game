@@ -221,6 +221,65 @@ TEST(GameExporterTests, ExportsProjectWithoutReadme)
   EXPECT_FALSE(file_exists(root / "dist" / "demo-game" / "README.md"));
 }
 
+TEST(GameExporterTests, ExportsProjectCodeAndKeepsManifestPortable)
+{
+  const auto root = make_export_test_root("with_source");
+  write_text_file(root / "game.package.json",
+                  R"({"name":"code-game","version":"2.0.0","source_root":"code","asset_root":"assets","output_dir":"dist"})");
+  write_text_file(root / "code" / "main.cpp", "int main() { return 0; }");
+  write_text_file(root / "CMakeLists.txt", "cmake_minimum_required(VERSION 3.20)");
+  write_text_file(root / "assets" / "hero.txt", "hero");
+
+  vix::game::GameExportConfig config;
+  config.project_root = root;
+  vix::game::GameExporter exporter;
+  auto result = exporter.export_project(config);
+
+  ASSERT_TRUE(result);
+  const auto output = root / "dist" / "code-game";
+  EXPECT_TRUE(file_exists(output / "code" / "main.cpp"));
+  EXPECT_TRUE(file_exists(output / "CMakeLists.txt"));
+  EXPECT_TRUE(file_exists(output / "assets" / "hero.txt"));
+  auto manifest = read_json_file(output / "export.json");
+  EXPECT_EQ(manifest["output_path"].template get<std::string>(), ".");
+}
+
+TEST(GameExporterTests, RejectsUnsafeProjectRelativePaths)
+{
+  const auto root = make_export_test_root("unsafe_paths");
+  vix::game::GameExportConfig config;
+  config.project_root = root;
+  config.asset_directory = "../outside";
+
+  vix::game::GameExporter exporter;
+  EXPECT_FALSE(exporter.export_project(config));
+
+  auto package = vix::game::GamePackage::defaults();
+  package.output_dir = "../outside";
+  EXPECT_FALSE(package.validate());
+}
+
+TEST(GameExporterTests, RepeatedExportReplacesPreviousOutput)
+{
+  const auto root = make_export_test_root("repeat_export");
+  write_text_file(root / "game.package.json", R"({"name":"repeat-game","version":"1.0.0"})");
+  write_text_file(root / "assets" / "first.txt", "one");
+
+  vix::game::GameExporter exporter;
+  vix::game::GameExportConfig config;
+  config.project_root = root;
+  ASSERT_TRUE(exporter.export_project(config));
+
+  std::filesystem::remove(root / "assets" / "first.txt");
+  write_text_file(root / "assets" / "second.txt", "two");
+  auto repeated = exporter.export_project(config);
+
+  ASSERT_TRUE(repeated);
+  const auto output = root / "dist" / "repeat-game" / "assets";
+  EXPECT_FALSE(file_exists(output / "first.txt"));
+  EXPECT_TRUE(file_exists(output / "second.txt"));
+}
+
 TEST(GamePackageTests, SavesPackageFile)
 {
   const auto root = make_export_test_root("package_save_file");

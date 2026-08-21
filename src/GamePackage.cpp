@@ -17,6 +17,7 @@
 #include <vix/game/GamePackage.hpp>
 
 #include <fstream>
+#include <filesystem>
 #include <sstream>
 #include <utility>
 
@@ -26,12 +27,33 @@
 
 namespace vix::game
 {
+  namespace
+  {
+    bool safe_relative_path(const std::string &value)
+    {
+      const std::filesystem::path path(value);
+      if (path.empty() || path.is_absolute())
+      {
+        return false;
+      }
+      for (const auto &part : path.lexically_normal())
+      {
+        if (part == "..")
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+
   GamePackage GamePackage::defaults()
   {
     GamePackage package;
     package.name = "vix-game";
     package.version = "0.1.0";
     package.entry_scene = "main";
+    package.source_root = "src";
     package.asset_root = "assets";
     package.output_dir = "dist";
     package.scenes = {"main"};
@@ -61,18 +83,24 @@ namespace vix::game
           "game package entry scene cannot be empty");
     }
 
-    if (asset_root.empty())
+    if (!safe_relative_path(source_root))
     {
-      return make_game_error(
-          GameErrorCode::ConfigInvalid,
-          "game package asset root cannot be empty");
+      return make_game_error(GameErrorCode::ConfigInvalid,
+                             "game package source root must be a safe relative path");
     }
 
-    if (output_dir.empty())
+    if (!safe_relative_path(asset_root))
     {
       return make_game_error(
           GameErrorCode::ConfigInvalid,
-          "game package output directory cannot be empty");
+          "game package asset root must be a safe relative path");
+    }
+
+    if (!safe_relative_path(output_dir))
+    {
+      return make_game_error(
+          GameErrorCode::ConfigInvalid,
+          "game package output directory must be a safe relative path");
     }
 
     return true;
@@ -86,6 +114,7 @@ namespace vix::game
     json["version"] = version;
     json["author"] = author;
     json["entry_scene"] = entry_scene;
+    json["source_root"] = source_root;
     json["asset_root"] = asset_root;
     json["output_dir"] = output_dir;
     json["scenes"] = scenes;
@@ -124,6 +153,11 @@ namespace vix::game
     if (json.contains("entry_scene") && json["entry_scene"].is_string())
     {
       package.entry_scene = json["entry_scene"].template get<std::string>();
+    }
+
+    if (json.contains("source_root") && json["source_root"].is_string())
+    {
+      package.source_root = json["source_root"].template get<std::string>();
     }
 
     if (json.contains("asset_root") && json["asset_root"].is_string())

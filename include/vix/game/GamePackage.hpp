@@ -91,6 +91,8 @@ namespace vix::game
     std::string version{"0.1.0"};
     std::string author{};
     std::string entry_scene{"main"};
+    /** Source directory, relative to the project root. */
+    std::string source_root{"src"};
     std::string asset_root{"assets"};
     std::string output_dir{"dist"};
 
