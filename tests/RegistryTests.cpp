@@ -236,6 +236,19 @@ TEST(RegistryTests, AddNullSystemReturnsError)
   EXPECT_EQ(registry.system_count(), 0u);
 }
 
+TEST(RegistryTests, SystemCanBeRetrievedAndRemoved)
+{
+  vix::game::Registry registry;
+  auto system = std::make_unique<CountingSystem>();
+  auto *raw = system.get();
+  ASSERT_TRUE(registry.add_system(std::move(system)));
+
+  EXPECT_EQ(registry.get_system<CountingSystem>(), raw);
+  ASSERT_TRUE(registry.remove_system(*raw));
+  EXPECT_EQ(registry.get_system<CountingSystem>(), nullptr);
+  EXPECT_EQ(registry.system_count(), 0u);
+}
+
 TEST(RegistryTests, ClearRemovesEverything)
 {
   vix::game::Registry registry;
@@ -286,4 +299,58 @@ TEST(RegistryTests, EntitiesReturnsEntityList)
   auto entities = registry.entities();
 
   EXPECT_EQ(entities.size(), 2u);
+}
+
+TEST(RegistryTests, ClearDoesNotReuseEntityIds)
+{
+  vix::game::Registry registry;
+  const auto first = registry.create_entity();
+
+  registry.clear();
+
+  const auto second = registry.create_entity();
+  EXPECT_NE(first.id(), second.id());
+  EXPECT_FALSE(registry.has_entity(first.id()));
+}
+
+TEST(RegistryTests, ViewUsesSnapshotSafeAgainstEntityDestruction)
+{
+  vix::game::Registry registry;
+  const auto first = registry.create_entity();
+  const auto second = registry.create_entity();
+  ASSERT_TRUE(registry.emplace_component<Position>(first.id(), 1.0F, 1.0F));
+  ASSERT_TRUE(registry.emplace_component<Position>(second.id(), 2.0F, 2.0F));
+
+  std::size_t visited = 0;
+  registry.view<Position>().each(
+      [&](const vix::game::Entity &entity, Position &position)
+      {
+        (void)position;
+        ++visited;
+        ASSERT_TRUE(registry.destroy_entity(entity.id()));
+      });
+
+  EXPECT_EQ(visited, 2u);
+  EXPECT_TRUE(registry.empty());
+}
+
+TEST(RegistryTests, ClearRequestedBySystemIsAppliedAfterUpdate)
+{
+  class ClearingSystem final : public vix::game::System
+  {
+  public:
+    void on_update(const vix::game::Frame &) override
+    {
+      registry().clear();
+    }
+  };
+
+  vix::game::Registry registry;
+  (void)registry.create_entity();
+  ASSERT_TRUE(registry.create_system<ClearingSystem>());
+
+  registry.update(vix::game::Frame{});
+
+  EXPECT_TRUE(registry.empty());
+  EXPECT_EQ(registry.system_count(), 0u);
 }

@@ -125,7 +125,8 @@ TEST(GameLoopTests, FixedUpdateRunsWhenEnabled)
   loop.set_fixed_update_callback(
       [&](const vix::game::Frame &frame)
       {
-        (void)frame;
+        EXPECT_EQ(frame.delta, step.fixed_delta);
+        EXPECT_EQ(frame.fixed_steps, 1u);
         ++fixed_updates;
       });
 

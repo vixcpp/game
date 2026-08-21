@@ -112,6 +112,20 @@ namespace vix::game
     return map_.bind_button(std::move(name), button);
   }
 
+  GameBoolResult InputSystem::add_key(
+      const std::string &name,
+      InputKey key)
+  {
+    return map_.add_key(name, key);
+  }
+
+  GameBoolResult InputSystem::add_button(
+      const std::string &name,
+      InputButton button)
+  {
+    return map_.add_button(name, button);
+  }
+
   GameBoolResult InputSystem::unbind(
       const std::string &name)
   {

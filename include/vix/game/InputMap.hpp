@@ -77,6 +77,21 @@ namespace vix::game
         std::string name,
         InputButton button);
 
+    /** Add a keyboard alternative to an existing logical action. */
+    [[nodiscard]] GameBoolResult add_key(
+        const std::string &name,
+        InputKey key);
+
+    /** Add a pointer-button alternative to an existing logical action. */
+    [[nodiscard]] GameBoolResult add_button(
+        const std::string &name,
+        InputButton button);
+
+    /** Add a physical alternative to an existing logical action. */
+    [[nodiscard]] GameBoolResult add_binding(
+        const std::string &name,
+        InputBinding binding);
+
     /**
      * @brief Remove an action by name.
      *

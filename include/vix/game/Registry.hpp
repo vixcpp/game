@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <map>
 #include <string>
 #include <typeindex>
 #include <typeinfo>
@@ -268,6 +269,13 @@ namespace vix::game
     template <typename T>
     [[nodiscard]] GameBoolResult remove_component(EntityId id)
     {
+      if (!has_entity(id))
+      {
+        return make_game_error(
+            GameErrorCode::EntityNotFound,
+            "cannot remove component from missing entity");
+      }
+
       auto *store = find_component_store<T>();
       if (store == nullptr || !store->contains(id))
       {
@@ -333,19 +341,100 @@ namespace vix::game
     }
 
     /**
+     * @brief Remove an owned system.
+     *
+     * Systems cannot be removed from inside an update callback because that
+     * would invalidate the current update snapshot; clear() is deferred for
+     * that use case.
+     */
+    [[nodiscard]] GameBoolResult remove_system(System &system)
+    {
+      if (updating_)
+      {
+        return make_game_error(
+            GameErrorCode::InvalidState,
+            "cannot remove a system during registry update");
+      }
+
+      for (auto it = systems_.begin(); it != systems_.end(); ++it)
+      {
+        if (it->get() != &system)
+        {
+          continue;
+        }
+
+        (*it)->on_stop();
+        (*it)->on_detach();
+        systems_.erase(it);
+        return true;
+      }
+
+      return make_game_error(
+          GameErrorCode::SystemNotFound,
+          "system is not owned by this registry");
+    }
+
+    /** @brief Return the first owned system compatible with T, if any. */
+    template <typename T>
+    [[nodiscard]] T *get_system()
+    {
+      for (const auto &system : systems_)
+      {
+        if (auto *typed = dynamic_cast<T *>(system.get()))
+        {
+          return typed;
+        }
+      }
+
+      return nullptr;
+    }
+
+    /** @brief Return the first owned system compatible with T, if any. */
+    template <typename T>
+    [[nodiscard]] const T *get_system() const
+    {
+      for (const auto &system : systems_)
+      {
+        if (auto *typed = dynamic_cast<const T *>(system.get()))
+        {
+          return typed;
+        }
+      }
+
+      return nullptr;
+    }
+
+    /**
      * @brief Update all systems.
      *
      * @param frame Current frame.
      */
     void update(const Frame &frame)
     {
-      for (auto &system : systems_)
+      updating_ = true;
+      std::vector<System *> systems;
+      systems.reserve(systems_.size());
+
+      for (const auto &system : systems_)
       {
         if (system)
         {
-          system->on_update(frame);
+          systems.push_back(system.get());
         }
       }
+
+      for (auto *system : systems)
+      {
+        if (clear_requested_)
+        {
+          break;
+        }
+
+        system->on_update(frame);
+      }
+
+      updating_ = false;
+      apply_deferred_clear();
     }
 
     /**
@@ -355,19 +444,48 @@ namespace vix::game
      */
     void fixed_update(const Frame &frame)
     {
-      for (auto &system : systems_)
+      updating_ = true;
+      std::vector<System *> systems;
+      systems.reserve(systems_.size());
+
+      for (const auto &system : systems_)
       {
         if (system)
         {
-          system->on_fixed_update(frame);
+          systems.push_back(system.get());
         }
       }
+
+      for (auto *system : systems)
+      {
+        if (clear_requested_)
+        {
+          break;
+        }
+
+        system->on_fixed_update(frame);
+      }
+
+      updating_ = false;
+      apply_deferred_clear();
     }
 
     /**
      * @brief Remove all entities, components, and systems.
      */
     void clear()
+    {
+      if (updating_)
+      {
+        clear_requested_ = true;
+        return;
+      }
+
+      clear_now();
+    }
+
+  private:
+    void clear_now()
     {
       for (auto &system : systems_)
       {
@@ -381,8 +499,20 @@ namespace vix::game
       systems_.clear();
       component_stores_.clear();
       entities_.clear();
-      next_entity_id_ = 1;
     }
+
+    void apply_deferred_clear()
+    {
+      if (!clear_requested_)
+      {
+        return;
+      }
+
+      clear_requested_ = false;
+      clear_now();
+    }
+
+  public:
 
     /**
      * @brief Return entity count.
@@ -597,7 +727,7 @@ namespace vix::game
     /**
      * @brief Entity map.
      */
-    std::unordered_map<EntityId, Entity> entities_{};
+    std::map<EntityId, Entity> entities_{};
 
     /**
      * @brief Type-erased component stores.
@@ -613,6 +743,12 @@ namespace vix::game
      * @brief Next entity id.
      */
     EntityId next_entity_id_{1};
+
+    /** True while a system update snapshot is being dispatched. */
+    bool updating_{false};
+
+    /** Clear requested by a system during an update. */
+    bool clear_requested_{false};
   };
 
 } // namespace vix::game

@@ -295,6 +295,7 @@ namespace vix::game
     auto *scene = active();
     if (scene)
     {
+      scene->registry().update(frame);
       scene->on_update(frame);
     }
   }
@@ -304,6 +305,7 @@ namespace vix::game
     auto *scene = active();
     if (scene)
     {
+      scene->registry().fixed_update(frame);
       scene->on_fixed_update(frame);
     }
   }
@@ -459,7 +461,6 @@ namespace vix::game
 
     scenes_.clear();
     name_to_id_.clear();
-    next_id_ = 1;
   }
 
   SceneManager::SceneRecord *SceneManager::record(SceneId id)

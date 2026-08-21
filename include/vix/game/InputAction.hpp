@@ -18,6 +18,7 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <vix/game/InputButton.hpp>
 #include <vix/game/InputKey.hpp>
@@ -218,7 +219,7 @@ namespace vix::game
      */
     InputAction(std::string name, InputBinding binding)
         : name_(std::move(name)),
-          binding_(binding)
+          bindings_{binding}
     {
     }
 
@@ -279,7 +280,14 @@ namespace vix::game
      */
     [[nodiscard]] const InputBinding &binding() const noexcept
     {
-      return binding_;
+      static const InputBinding empty;
+      return bindings_.empty() ? empty : bindings_.front();
+    }
+
+    /** @brief Return every physical binding for this logical action. */
+    [[nodiscard]] const std::vector<InputBinding> &bindings() const noexcept
+    {
+      return bindings_;
     }
 
     /**
@@ -290,7 +298,27 @@ namespace vix::game
      */
     InputAction &set_binding(InputBinding value) noexcept
     {
-      binding_ = value;
+      bindings_.clear();
+      bindings_.push_back(value);
+      return *this;
+    }
+
+    /** @brief Add a distinct physical binding to this logical action. */
+    InputAction &add_binding(InputBinding value)
+    {
+      if (value.valid())
+      {
+        for (const auto &binding : bindings_)
+        {
+          if (binding == value)
+          {
+            return *this;
+          }
+        }
+
+        bindings_.push_back(value);
+      }
+
       return *this;
     }
 
@@ -299,7 +327,8 @@ namespace vix::game
      */
     [[nodiscard]] bool valid() const noexcept
     {
-      return !name_.empty() && binding_.valid();
+      return !name_.empty() && !bindings_.empty() &&
+             bindings_.front().valid();
     }
 
   private:
@@ -308,10 +337,8 @@ namespace vix::game
      */
     std::string name_{};
 
-    /**
-     * @brief Action binding.
-     */
-    InputBinding binding_{};
+    /** Physical bindings that activate this logical action. */
+    std::vector<InputBinding> bindings_{};
   };
 
 } // namespace vix::game

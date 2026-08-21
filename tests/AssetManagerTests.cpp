@@ -233,6 +233,24 @@ TEST(AssetManagerTests, ClearRemovesAllAssets)
   EXPECT_EQ(manager.id_for("a.txt"), vix::game::invalid_asset_id);
 }
 
+TEST(AssetManagerTests, ClearDoesNotReuseAssetIds)
+{
+  const auto root = make_test_asset_root();
+  write_text_file(root / "a.txt", "a");
+  write_text_file(root / "b.txt", "b");
+
+  vix::game::AssetManager manager(root.string());
+  auto first = manager.load("a.txt");
+  ASSERT_TRUE(first);
+
+  manager.clear();
+
+  auto second = manager.load("b.txt");
+  ASSERT_TRUE(second);
+  EXPECT_NE(first.value(), second.value());
+  EXPECT_FALSE(manager.contains(first.value()));
+}
+
 TEST(AssetManagerTests, DispatchesAssetLoadedEvent)
 {
   const auto root = make_test_asset_root();

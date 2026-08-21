@@ -247,6 +247,40 @@ TEST(SceneManagerTests, UpdateForwardsToActiveSceneOnly)
   EXPECT_EQ(gameplay->fixed_update_count, 1);
 }
 
+TEST(SceneManagerTests, ActiveSceneOwnsAndUpdatesItsWorldRegistry)
+{
+  class WorldSystem final : public vix::game::System
+  {
+  public:
+    explicit WorldSystem(int &updates)
+        : updates_(&updates)
+    {
+    }
+
+    void on_update(const vix::game::Frame &) override
+    {
+      ++(*updates_);
+    }
+
+  private:
+    int *updates_;
+  };
+
+  vix::game::App app;
+  vix::game::SceneManager manager(app);
+  auto id = manager.add("main", std::make_unique<TestScene>());
+  ASSERT_TRUE(id);
+  ASSERT_TRUE(manager.set_active(id.value()));
+
+  int world_updates = 0;
+  auto *scene = manager.active();
+  ASSERT_NE(scene, nullptr);
+  ASSERT_TRUE(scene->registry().create_system<WorldSystem>(world_updates));
+
+  manager.update(vix::game::Frame{});
+  EXPECT_EQ(world_updates, 1);
+}
+
 TEST(SceneManagerTests, RemoveActiveSceneClearsActiveId)
 {
   vix::game::App app;

@@ -49,6 +49,41 @@ namespace vix::game
     return bind(InputAction::button(std::move(name), button));
   }
 
+  GameBoolResult InputMap::add_key(const std::string &name, InputKey key)
+  {
+    return add_binding(name, InputBinding::from_key(key));
+  }
+
+  GameBoolResult InputMap::add_button(
+      const std::string &name,
+      InputButton button)
+  {
+    return add_binding(name, InputBinding::from_button(button));
+  }
+
+  GameBoolResult InputMap::add_binding(
+      const std::string &name,
+      InputBinding binding)
+  {
+    if (name.empty() || !binding.valid())
+    {
+      return make_game_error(
+          GameErrorCode::InvalidArgument,
+          "input action name and binding must be valid");
+    }
+
+    auto *action = get(name);
+    if (!action)
+    {
+      return make_game_error(
+          GameErrorCode::InvalidArgument,
+          "input action not found");
+    }
+
+    action->add_binding(binding);
+    return true;
+  }
+
   GameBoolResult InputMap::unbind(const std::string &name)
   {
     if (name.empty())
@@ -106,7 +141,15 @@ namespace vix::game
       return false;
     }
 
-    return binding_down(action->binding(), state);
+    for (const auto &binding : action->bindings())
+    {
+      if (binding_down(binding, state))
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   bool InputMap::pressed(
@@ -119,7 +162,15 @@ namespace vix::game
       return false;
     }
 
-    return binding_pressed(action->binding(), state);
+    for (const auto &binding : action->bindings())
+    {
+      if (binding_pressed(binding, state))
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   bool InputMap::released(
@@ -132,7 +183,15 @@ namespace vix::game
       return false;
     }
 
-    return binding_released(action->binding(), state);
+    for (const auto &binding : action->bindings())
+    {
+      if (binding_released(binding, state))
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   std::vector<std::string> InputMap::names() const

@@ -227,3 +227,30 @@ TEST(EventBusTests, DispatchAssignsSequence)
   EXPECT_TRUE(result.value());
   EXPECT_EQ(sequence, 1u);
 }
+
+TEST(EventBusTests, SubscriptionMutationsApplyToFollowingDispatches)
+{
+  vix::game::EventBus bus;
+  int calls = 0;
+
+  auto first = bus.subscribe(
+      vix::game::EventType::AppStarted,
+      [&](const vix::game::Event &)
+      {
+        ++calls;
+        auto added = bus.subscribe(
+            vix::game::EventType::AppStarted,
+            [&](const vix::game::Event &)
+            {
+              ++calls;
+            });
+        ASSERT_TRUE(added);
+      });
+  ASSERT_TRUE(first);
+
+  ASSERT_TRUE(bus.dispatch(vix::game::Event(vix::game::EventType::AppStarted)));
+  EXPECT_EQ(calls, 1);
+
+  ASSERT_TRUE(bus.dispatch(vix::game::Event(vix::game::EventType::AppStarted)));
+  EXPECT_EQ(calls, 3);
+}

@@ -113,9 +113,9 @@ namespace
   public:
     vix::game::GameBoolResult on_load() override
     {
-      auto entity = registry_.create_entity("player");
+      auto entity = registry().create_entity("player");
 
-      auto component = registry_.emplace_component<vix::game::Transform2D>(
+      auto component = registry().emplace_component<vix::game::Transform2D>(
           entity.id(),
           vix::game::Transform2D::identity());
 
@@ -126,19 +126,6 @@ namespace
 
       return vix::game::Scene::on_load();
     }
-
-    vix::game::Registry *registry() noexcept override
-    {
-      return &registry_;
-    }
-
-    const vix::game::Registry *registry() const noexcept override
-    {
-      return &registry_;
-    }
-
-  private:
-    vix::game::Registry registry_{};
   };
 }
 
@@ -214,6 +201,22 @@ TEST(GameRuntimeV4ArchitectureTests, InputSystemHandlesWindowEvents)
 
   EXPECT_DOUBLE_EQ(wheel.x, 0.0);
   EXPECT_DOUBLE_EQ(wheel.y, 1.0);
+}
+
+TEST(GameRuntimeV4ArchitectureTests, InputActionsSupportMultipleBindings)
+{
+  vix::game::InputSystem input;
+
+  ASSERT_TRUE(input.bind_key("confirm", vix::game::InputKey::Space));
+  ASSERT_TRUE(input.add_button("confirm", vix::game::InputButton::Left));
+
+  input.begin_frame();
+  input.press_button(vix::game::InputButton::Left);
+
+  EXPECT_TRUE(input.action_down("confirm"));
+  EXPECT_TRUE(input.action_pressed("confirm"));
+  ASSERT_NE(input.map().get("confirm"), nullptr);
+  EXPECT_EQ(input.map().get("confirm")->bindings().size(), 2u);
 }
 
 TEST(GameRuntimeV4ArchitectureTests, Renderer2DFlushesSpritesToNullRenderer)

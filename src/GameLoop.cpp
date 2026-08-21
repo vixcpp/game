@@ -173,7 +173,13 @@ namespace vix::game
 
     while (accumulator >= step_.fixed_delta)
     {
-      fixed_update_(frame);
+      // Fixed callbacks receive the same frame identity but their delta is the
+      // deterministic simulation step, never the variable render-frame delta.
+      Frame fixed_frame = frame;
+      fixed_frame.delta = step_.fixed_delta;
+      fixed_frame.fixed_steps = 1;
+
+      fixed_update_(fixed_frame);
       accumulator -= step_.fixed_delta;
       ++steps;
     }

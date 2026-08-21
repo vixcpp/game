@@ -195,12 +195,6 @@ namespace vix::game
       return RegistryStats{};
     }
 
-    const auto *registry = scene->registry();
-    if (registry == nullptr)
-    {
-      return RegistryStats{};
-    }
-
-    return registry->stats();
+    return scene->registry().stats();
   }
 } // namespace vix::game

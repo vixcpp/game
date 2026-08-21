@@ -238,7 +238,6 @@ namespace vix::game
   void AssetManager::clear()
   {
     cache_.clear();
-    next_id_ = 1;
   }
 
   GameResult<Asset> AssetManager::load_asset_from_disk(

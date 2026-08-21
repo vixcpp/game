@@ -21,6 +21,7 @@
 
 #include <vix/game/Frame.hpp>
 #include <vix/game/GameResult.hpp>
+#include <vix/game/Registry.hpp>
 #include <vix/game/SceneId.hpp>
 
 namespace vix::game
@@ -35,8 +36,6 @@ namespace vix::game
   class Window;
   class Renderer;
   class Renderer2D;
-
-  class Registry;
 
   /**
    * @brief Base class for game scenes.
@@ -141,26 +140,16 @@ namespace vix::game
       (void)frame;
     }
 
-    /**
-     * @brief Return the scene registry if the scene owns one.
-     *
-     * Scenes are not required to use Registry. The default implementation returns
-     * nullptr.
-     */
-    [[nodiscard]] virtual Registry *registry() noexcept
+    /** @brief Return this scene's exclusively owned world registry. */
+    [[nodiscard]] Registry &registry() noexcept
     {
-      return nullptr;
+      return registry_;
     }
 
-    /**
-     * @brief Return the scene registry if the scene owns one.
-     *
-     * Scenes are not required to use Registry. The default implementation returns
-     * nullptr.
-     */
-    [[nodiscard]] virtual const Registry *registry() const noexcept
+    /** @brief Return this scene's exclusively owned world registry. */
+    [[nodiscard]] const Registry &registry() const noexcept
     {
-      return nullptr;
+      return registry_;
     }
 
     /**
@@ -348,6 +337,9 @@ namespace vix::game
      * @brief Whether the scene is currently active.
      */
     bool active_{false};
+
+    /** World owned by the scene for its full lifetime. */
+    Registry registry_{};
   };
 
 } // namespace vix::game
