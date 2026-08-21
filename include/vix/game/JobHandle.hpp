@@ -143,6 +143,12 @@ namespace vix::game
       return handle_.ready();
     }
 
+    /** @brief Return the terminal threadpool error, when one is available. */
+    [[nodiscard]] vix::threadpool::ThreadPoolErrc error() const
+    {
+      return handle_.error();
+    }
+
     /**
      * @brief Wait for the job to complete.
      */

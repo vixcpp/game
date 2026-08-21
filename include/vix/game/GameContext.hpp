@@ -25,6 +25,7 @@
 #include <vix/game/JobSystem.hpp>
 #include <vix/game/Renderer.hpp>
 #include <vix/game/Renderer2D.hpp>
+#include <vix/game/RuntimeDispatcher.hpp>
 #include <vix/game/SceneManager.hpp>
 #include <vix/game/Window.hpp>
 #include <vix/game/RendererBackend.hpp>
@@ -118,6 +119,15 @@ namespace vix::game
      * @brief Return the job system.
      */
     [[nodiscard]] const JobSystem &jobs() const;
+
+    /**
+     * @brief Return the queue used to resume work on the runtime thread.
+     *
+     * Tasks may be posted from workers, but are executed at the start of the
+     * next runtime frame. Runtime-owned services must only be mutated there.
+     */
+    [[nodiscard]] RuntimeDispatcher &dispatcher() noexcept;
+    [[nodiscard]] const RuntimeDispatcher &dispatcher() const noexcept;
 
     /**
      * @brief Return the input system.
@@ -234,6 +244,9 @@ namespace vix::game
      * @brief Runtime 2D renderer facade.
      */
     Renderer2D renderer2d_{};
+
+    /** Queue bridging isolated workers back to this runtime. */
+    RuntimeDispatcher dispatcher_{};
 
     /** Whether the runtime backends completed initialization. */
     bool initialized_{false};

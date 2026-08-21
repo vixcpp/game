@@ -155,6 +155,80 @@ namespace vix::game
     return load(relative_path);
   }
 
+  GameResult<Asset> AssetManager::read_from_disk(
+      const std::string &asset_root,
+      const std::string &relative_path,
+      AssetType type)
+  {
+    auto asset_path = AssetPath::make(asset_root, relative_path);
+    if (!asset_path)
+    {
+      return asset_path.error();
+    }
+
+    auto exists = vix::fs::exists(asset_path.value().full());
+    if (!exists)
+    {
+      return make_game_error(GameErrorCode::AssetLoadFailed, "failed to check asset existence");
+    }
+    if (!exists.value())
+    {
+      return make_game_error(GameErrorCode::AssetNotFound, "asset file not found");
+    }
+
+    auto is_file = vix::fs::is_file(asset_path.value().full());
+    if (!is_file)
+    {
+      return make_game_error(GameErrorCode::AssetLoadFailed, "failed to check asset file type");
+    }
+    if (!is_file.value())
+    {
+      return make_game_error(GameErrorCode::AssetInvalidPath, "asset path is not a file");
+    }
+
+    if (is_text_asset(type))
+    {
+      auto text = vix::fs::read_text(asset_path.value().full());
+      if (!text)
+      {
+        return make_game_error(GameErrorCode::AssetLoadFailed, "failed to read text asset");
+      }
+      return Asset::text(invalid_asset_id, type, std::move(asset_path.value()), std::move(text.value()));
+    }
+
+    auto bytes = vix::fs::read_file(asset_path.value().full());
+    if (!bytes)
+    {
+      return make_game_error(GameErrorCode::AssetLoadFailed, "failed to read binary asset");
+    }
+    return Asset::binary(invalid_asset_id, type, std::move(asset_path.value()), std::move(bytes.value()));
+  }
+
+  GameResult<AssetId> AssetManager::commit(Asset asset)
+  {
+    const std::string relative_path = asset.path().relative();
+    if (relative_path.empty())
+    {
+      return make_game_error(GameErrorCode::AssetInvalidPath, "asset path cannot be empty");
+    }
+    if (cache_.contains(relative_path))
+    {
+      return make_game_error(GameErrorCode::AssetAlreadyLoaded, "asset is already loaded");
+    }
+
+    const AssetId id = next_id();
+    asset.set_id(id);
+    auto stored = cache_.store(std::move(asset));
+    if (!stored)
+    {
+      dispatch_asset_event(EventType::AssetLoadFailed, relative_path);
+      return stored.error();
+    }
+
+    dispatch_asset_event(EventType::AssetLoaded, relative_path);
+    return id;
+  }
+
   GameBoolResult AssetManager::unload(AssetId id)
   {
     return cache_.remove(id);
@@ -245,72 +319,13 @@ namespace vix::game
       AssetType type,
       AssetId id)
   {
-    auto asset_path = AssetPath::make(asset_root_, relative_path);
-    if (!asset_path)
+    auto asset = read_from_disk(asset_root_, relative_path, type);
+    if (!asset)
     {
-      return asset_path.error();
+      return asset.error();
     }
-
-    auto exists = vix::fs::exists(asset_path.value().full());
-    if (!exists)
-    {
-      return make_game_error(
-          GameErrorCode::AssetLoadFailed,
-          "failed to check asset existence");
-    }
-
-    if (!exists.value())
-    {
-      return make_game_error(
-          GameErrorCode::AssetNotFound,
-          "asset file not found");
-    }
-
-    auto is_file = vix::fs::is_file(asset_path.value().full());
-    if (!is_file)
-    {
-      return make_game_error(
-          GameErrorCode::AssetLoadFailed,
-          "failed to check asset file type");
-    }
-
-    if (!is_file.value())
-    {
-      return make_game_error(
-          GameErrorCode::AssetInvalidPath,
-          "asset path is not a file");
-    }
-
-    if (is_text_asset(type))
-    {
-      auto text = vix::fs::read_text(asset_path.value().full());
-      if (!text)
-      {
-        return make_game_error(
-            GameErrorCode::AssetLoadFailed,
-            "failed to read text asset");
-      }
-
-      return Asset::text(
-          id,
-          type,
-          std::move(asset_path.value()),
-          std::move(text.value()));
-    }
-
-    auto bytes = vix::fs::read_file(asset_path.value().full());
-    if (!bytes)
-    {
-      return make_game_error(
-          GameErrorCode::AssetLoadFailed,
-          "failed to read binary asset");
-    }
-
-    return Asset::binary(
-        id,
-        type,
-        std::move(asset_path.value()),
-        std::move(bytes.value()));
+    asset.value().set_id(id);
+    return asset;
   }
 
   void AssetManager::dispatch_asset_event(

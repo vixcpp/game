@@ -28,6 +28,7 @@
 #include <vix/game/GameResult.hpp>
 #include <vix/game/JobHandle.hpp>
 #include <vix/game/JobPriority.hpp>
+#include <vix/game/RuntimeDispatcher.hpp>
 #include <vix/threadpool/CancellationSource.hpp>
 #include <vix/threadpool/TaskOptions.hpp>
 #include <vix/threadpool/ThreadPool.hpp>
@@ -84,6 +85,14 @@ namespace vix::game
      * @param bus Event bus pointer. May be nullptr.
      */
     void set_event_bus(EventBus *bus) noexcept;
+
+    /**
+     * @brief Route lifecycle events through a runtime dispatcher.
+     *
+     * With a dispatcher installed, EventBus is never called by a worker. The
+     * pointer remains owned by the runtime and must outlive this JobSystem.
+     */
+    void set_runtime_dispatcher(RuntimeDispatcher *dispatcher) noexcept;
 
     /**
      * @brief Start the job system.
@@ -191,6 +200,9 @@ namespace vix::game
      * @brief Event bus used for job events.
      */
     EventBus *events_{nullptr};
+
+    /** Optional runtime-thread hand-off for lifecycle events. */
+    RuntimeDispatcher *dispatcher_{nullptr};
 
     /**
      * @brief Worker count.

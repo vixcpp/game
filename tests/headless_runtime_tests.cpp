@@ -9,7 +9,11 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <filesystem>
+#include <fstream>
 #include <memory>
+#include <thread>
 
 #include <vix/game/App.hpp>
 #include <vix/game/AppConfig.hpp>
@@ -109,4 +113,38 @@ TEST(HeadlessRuntimeTests, AppRuntimeWorksWithNullWindowAndNullRenderer)
 
   EXPECT_FALSE(context.renderer2d().frame_active());
   EXPECT_EQ(raw_renderer->sprite_count(), 1U);
+}
+
+TEST(HeadlessRuntimeTests, AsyncAssetCompletionIsAppliedAtFrameStart)
+{
+  const auto root = std::filesystem::temp_directory_path() / "vix_game_headless_async_tests";
+  std::filesystem::remove_all(root);
+  std::filesystem::create_directories(root);
+  std::ofstream(root / "asset.txt") << "headless";
+
+  auto config = vix::game::AppConfig::defaults();
+  config.headless = true;
+  config.window = vix::game::WindowConfig::headless_config();
+  config.asset_root = root.string();
+  vix::game::App app(config);
+  ASSERT_TRUE(app.init());
+
+  const auto runtime_thread = std::this_thread::get_id();
+  std::atomic<bool> completed{false};
+  std::atomic<bool> correct_thread{false};
+  auto job = app.async_assets().load("asset.txt", [&](vix::game::GameResult<vix::game::AssetId> result)
+  {
+    completed.store(result.ok());
+    correct_thread.store(std::this_thread::get_id() == runtime_thread);
+  });
+  ASSERT_TRUE(job);
+  job.value().wait();
+  EXPECT_FALSE(completed.load());
+
+  vix::game::Frame frame;
+  app.runtime().begin_frame(frame);
+
+  EXPECT_TRUE(completed.load());
+  EXPECT_TRUE(correct_thread.load());
+  EXPECT_TRUE(app.assets().contains("asset.txt"));
 }

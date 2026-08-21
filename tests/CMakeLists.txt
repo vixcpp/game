@@ -23,6 +23,7 @@ set(VIX_GAME_TEST_SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/EventBusTests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/GameLoopTests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JobSystemTests.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RuntimeDispatcherTests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/RegistryTests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/SceneManagerTests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/TimeStepTests.cpp"

@@ -26,17 +26,15 @@
 #include <vix/game/JobHandle.hpp>
 #include <vix/game/JobPriority.hpp>
 #include <vix/game/JobSystem.hpp>
+#include <vix/game/RuntimeDispatcher.hpp>
 
 namespace vix::game
 {
   /**
    * @brief Asynchronous asset loading helper.
    *
-   * AsyncAssetLoader schedules asset loading work on JobSystem and stores the
-   * result in AssetManager.
-   *
-   * The completion callback is invoked from the worker thread that executed the
-   * loading job.
+   * Workers only read files. Cache mutation and the completion callback are
+   * posted to RuntimeDispatcher and run at the start of a later runtime frame.
    */
   class AsyncAssetLoader
   {
@@ -54,7 +52,8 @@ namespace vix::game
      */
     AsyncAssetLoader(
         AssetManager &assets,
-        JobSystem &jobs) noexcept;
+        JobSystem &jobs,
+        RuntimeDispatcher &dispatcher) noexcept;
 
     AsyncAssetLoader(const AsyncAssetLoader &) = delete;
     AsyncAssetLoader &operator=(const AsyncAssetLoader &) = delete;
@@ -106,6 +105,13 @@ namespace vix::game
         JobPriority priority = JobPriority::Normal);
 
   private:
+    [[nodiscard]] GameResult<JobHandle> submit_read(
+        std::string relative_path,
+        AssetType type,
+        CompletionCallback callback,
+        JobPriority priority,
+        bool replace_existing);
+
     /**
      * @brief Asset manager used by this loader.
      */
@@ -115,6 +121,9 @@ namespace vix::game
      * @brief Job system used by this loader.
      */
     JobSystem *jobs_{nullptr};
+
+    /** Runtime queue used for cache mutation and user completion. */
+    RuntimeDispatcher *dispatcher_{nullptr};
   };
 
 } // namespace vix::game

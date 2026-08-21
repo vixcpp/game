@@ -216,3 +216,12 @@ TEST(JobSystemTests, StatsCanBeQueried)
 
   jobs.shutdown();
 }
+
+TEST(JobSystemTests, ShutdownIsTerminalAndRejectsNewJobs)
+{
+  vix::game::JobSystem jobs(1);
+  jobs.shutdown();
+
+  EXPECT_FALSE(jobs.start());
+  EXPECT_FALSE(jobs.submit([] {}));
+}

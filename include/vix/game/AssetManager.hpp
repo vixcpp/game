@@ -119,6 +119,25 @@ namespace vix::game
     [[nodiscard]] GameResult<AssetId> reload(const std::string &relative_path);
 
     /**
+     * @brief Read an asset without mutating a manager or cache.
+     *
+     * This is suitable for worker threads. The returned Asset has no assigned
+     * manager id and must be passed to commit() on the runtime thread.
+     */
+    [[nodiscard]] static GameResult<Asset> read_from_disk(
+        const std::string &asset_root,
+        const std::string &relative_path,
+        AssetType type);
+
+    /**
+     * @brief Add a previously read asset to this manager.
+     *
+     * This mutates the cache and dispatches events, so callers must use it on
+     * the runtime thread.
+     */
+    [[nodiscard]] GameResult<AssetId> commit(Asset asset);
+
+    /**
      * @brief Unload an asset by id.
      *
      * @param id Asset id.

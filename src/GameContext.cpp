@@ -96,6 +96,16 @@ namespace vix::game
     return app().jobs();
   }
 
+  RuntimeDispatcher &GameContext::dispatcher() noexcept
+  {
+    return dispatcher_;
+  }
+
+  const RuntimeDispatcher &GameContext::dispatcher() const noexcept
+  {
+    return dispatcher_;
+  }
+
   InputSystem &GameContext::input() noexcept
   {
     return input_;
@@ -186,6 +196,8 @@ namespace vix::game
 
   void GameContext::begin_frame()
   {
+    // This is the only runtime-owned hand-off point for background work.
+    (void)dispatcher_.drain();
     input_.begin_frame();
   }
 
@@ -214,6 +226,8 @@ namespace vix::game
           GameErrorCode::InvalidState,
           "runtime context is already initialized");
     }
+
+    dispatcher_.bind_current_thread();
 
     if (!window_.has_backend())
     {
@@ -255,6 +269,7 @@ namespace vix::game
       return;
     }
 
+    dispatcher_.close();
     clear();
     renderer_.shutdown();
     window_.close();

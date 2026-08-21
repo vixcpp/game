@@ -27,6 +27,7 @@
 #include <vix/game/Frame.hpp>
 #include <vix/game/GameClock.hpp>
 #include <vix/game/GameLoop.hpp>
+#include <vix/game/RuntimeDispatcher.hpp>
 #include <vix/game/TimeStep.hpp>
 
 #include <vix/game/Event.hpp>

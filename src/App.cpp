@@ -340,11 +340,13 @@ namespace vix::game
     {
       jobs_ = std::make_unique<JobSystem>();
       jobs_->set_event_bus(events_.get());
+      jobs_->set_runtime_dispatcher(&runtime_.context().dispatcher());
     }
 
     if (!async_assets_)
     {
-      async_assets_ = std::make_unique<AsyncAssetLoader>(*assets_, *jobs_);
+      async_assets_ = std::make_unique<AsyncAssetLoader>(
+          *assets_, *jobs_, runtime_.context().dispatcher());
     }
   }
 

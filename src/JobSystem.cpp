@@ -16,6 +16,7 @@
 
 #include <vix/game/JobSystem.hpp>
 
+#include <stdexcept>
 #include <thread>
 
 namespace vix::game
@@ -43,25 +44,32 @@ namespace vix::game
     events_ = bus;
   }
 
+  void JobSystem::set_runtime_dispatcher(RuntimeDispatcher *dispatcher) noexcept
+  {
+    dispatcher_ = dispatcher;
+  }
+
   GameBoolResult JobSystem::start()
   {
+    if (shutdown_done_)
+    {
+      return make_game_error(
+          GameErrorCode::InvalidState,
+          "job system has been shut down and cannot be restarted");
+    }
+
     if (pool_)
     {
       return true;
     }
 
     pool_ = std::make_unique<vix::threadpool::ThreadPool>(make_config());
-    shutdown_done_ = false;
-
     return true;
   }
 
   void JobSystem::stop() noexcept
   {
-    if (pool_)
-    {
-      pool_->shutdown();
-    }
+    shutdown();
   }
 
   void JobSystem::shutdown() noexcept
@@ -194,11 +202,19 @@ namespace vix::game
 
   vix::threadpool::ThreadPool &JobSystem::native()
   {
+    if (!pool_)
+    {
+      throw std::logic_error("job system is not running; call start() before native()");
+    }
     return *pool_;
   }
 
   const vix::threadpool::ThreadPool &JobSystem::native() const
   {
+    if (!pool_)
+    {
+      throw std::logic_error("job system is not running; call start() before native()");
+    }
     return *pool_;
   }
 
@@ -241,16 +257,30 @@ namespace vix::game
       return;
     }
 
-    Event event(type);
-    event.set_source("job_system");
-
-    if (is_valid_job_id(id))
+    auto dispatch = [events = events_, type, id]()
     {
-      event.set_target(std::to_string(id));
-      event.set_field("job_id", std::to_string(id));
+      Event event(type);
+      event.set_source("job_system");
+
+      if (is_valid_job_id(id))
+      {
+        event.set_target(std::to_string(id));
+        event.set_field("job_id", std::to_string(id));
+      }
+
+      (void)events->dispatch(std::move(event));
+    };
+
+    if (dispatcher_)
+    {
+      // During shutdown close() rejects this hand-off; EventBus then cannot be
+      // touched after its runtime lifetime has ended.
+      (void)dispatcher_->post(std::move(dispatch));
+      return;
     }
 
-    (void)events_->dispatch(std::move(event));
+    // Standalone JobSystem keeps its historical immediate-event behavior.
+    dispatch();
   }
 
 } // namespace vix::game
