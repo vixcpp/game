@@ -35,15 +35,17 @@ namespace vix::game
   App::App(AppConfig config)
       : config_(std::move(config)),
         loop_(config_.time_step),
-        runtime_(),
+        runtime_(*this),
         scenes_(),
         events_(),
         assets_(),
         jobs_(),
         async_assets_(),
         initialized_(false),
-        shutdown_done_(false)
+        shutdown_done_(false),
+        running_(false)
   {
+    create_systems();
   }
 
   App::~App()
@@ -55,7 +57,16 @@ namespace vix::game
   {
     if (initialized_)
     {
-      return true;
+      return make_game_error(
+          GameErrorCode::InvalidState,
+          "app is already initialized; call run() or shutdown() instead");
+    }
+
+    if (shutdown_done_)
+    {
+      return make_game_error(
+          GameErrorCode::InvalidState,
+          "app has been shut down and cannot be initialized again");
     }
 
     auto valid = config_.validate();
@@ -64,10 +75,7 @@ namespace vix::game
       return valid.error();
     }
 
-    create_systems();
     configure_loop();
-
-    runtime_.attach(*this);
 
     auto runtime_result = runtime_.init();
     if (!runtime_result)
@@ -81,8 +89,6 @@ namespace vix::game
     }
 
     initialized_ = true;
-    shutdown_done_ = false;
-
     if (events_)
     {
       (void)events_->dispatch(
@@ -112,16 +118,36 @@ namespace vix::game
           "app is already running");
     }
 
-    return loop_.run();
+    // Reassert App's callbacks so direct GameLoop customization cannot bypass
+    // the canonical runtime lifecycle.
+    configure_loop();
+
+    running_ = true;
+    stopping_ = false;
+    runtime_.begin_run();
+
+    auto result = loop_.run();
+
+    runtime_.end_run();
+    running_ = false;
+
+    if (shutdown_requested_)
+    {
+      shutdown_requested_ = false;
+      shutdown();
+    }
+
+    return result;
   }
 
   void App::stop() noexcept
   {
-    if (events_)
+    if (running_ && !stopping_ && events_)
     {
       (void)events_->dispatch(Event(EventType::AppStopping).set_source("app"));
     }
 
+    stopping_ = true;
     loop_.stop();
   }
 
@@ -132,10 +158,16 @@ namespace vix::game
       return;
     }
 
+    if (running_)
+    {
+      shutdown_requested_ = true;
+      stop();
+      return;
+    }
+
     stop();
 
     runtime_.shutdown();
-    runtime_.detach();
 
     if (scenes_)
     {
@@ -174,7 +206,7 @@ namespace vix::game
 
   bool App::running() const noexcept
   {
-    return loop_.running();
+    return running_;
   }
 
   const AppConfig &App::config() const noexcept
@@ -184,7 +216,7 @@ namespace vix::game
 
   GameBoolResult App::set_config(AppConfig config)
   {
-    if (initialized_ || running())
+    if (initialized_ || running() || shutdown_done_)
     {
       return make_game_error(
           GameErrorCode::InvalidState,
@@ -225,7 +257,6 @@ namespace vix::game
 
   SceneManager &App::scenes()
   {
-    create_systems();
     return *scenes_;
   }
 
@@ -236,7 +267,6 @@ namespace vix::game
 
   EventBus &App::events()
   {
-    create_systems();
     return *events_;
   }
 
@@ -247,7 +277,6 @@ namespace vix::game
 
   AssetManager &App::assets()
   {
-    create_systems();
     return *assets_;
   }
 
@@ -258,7 +287,6 @@ namespace vix::game
 
   JobSystem &App::jobs()
   {
-    create_systems();
     return *jobs_;
   }
 
@@ -269,7 +297,6 @@ namespace vix::game
 
   AsyncAssetLoader &App::async_assets()
   {
-    create_systems();
     return *async_assets_;
   }
 
@@ -350,6 +377,12 @@ namespace vix::game
 
     runtime_.begin_frame(frame);
     runtime_.update(frame);
+
+    if (update_callback_)
+    {
+      update_callback_(frame);
+    }
+
     runtime_.render(frame);
     runtime_.end_frame(frame);
 
@@ -365,6 +398,11 @@ namespace vix::game
   void App::fixed_update(const Frame &frame)
   {
     runtime_.fixed_update(frame);
+
+    if (fixed_update_callback_)
+    {
+      fixed_update_callback_(frame);
+    }
   }
 
 } // namespace vix::game

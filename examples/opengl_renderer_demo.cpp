@@ -58,30 +58,22 @@ int main()
 
   vix::game::App app(config);
 
+  auto &context = app.runtime().context();
+
+  auto window_backend = context.set_window_backend(
+      std::make_unique<vix::game::sdl::SDLWindow>());
+  auto renderer_backend = context.set_renderer_backend(
+      std::make_unique<vix::game::sdl::SDLOpenGLRenderer>());
+  if (!window_backend || !renderer_backend)
+  {
+    vix::print("backend configuration failed");
+    return 1;
+  }
+
   auto init = app.init();
   if (!init)
   {
     vix::print("app init failed:", init.error().message());
-    return 1;
-  }
-
-  auto &context = app.runtime().context();
-
-  context
-      .set_window_backend(std::make_unique<vix::game::sdl::SDLWindow>())
-      .set_renderer_backend(std::make_unique<vix::game::sdl::SDLOpenGLRenderer>());
-
-  auto opened = context.window().open(config.window);
-  if (!opened)
-  {
-    vix::print("window open failed:", opened.error().message());
-    return 1;
-  }
-
-  auto renderer_init = context.renderer().init(context.window());
-  if (!renderer_init)
-  {
-    vix::print("renderer init failed:", renderer_init.error().message());
     return 1;
   }
 

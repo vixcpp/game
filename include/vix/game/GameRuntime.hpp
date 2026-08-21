@@ -28,10 +28,11 @@ namespace vix::game
   /**
    * @brief Runtime coordinator for game applications.
    *
-   * GameRuntime owns the high-level runtime flow around GameContext.
+   * GameRuntime is owned exclusively by App and owns the high-level runtime
+   * flow around GameContext. It cannot be constructed or attached separately.
    *
    * It is responsible for:
-   * - attaching to an App
+   * - initializing runtime backends for its App
    * - preparing per-frame systems
    * - forwarding update and fixed update phases
    * - preparing future editor, scripting, audio, and physics integrations
@@ -39,18 +40,6 @@ namespace vix::game
   class GameRuntime
   {
   public:
-    /**
-     * @brief Construct an empty runtime.
-     */
-    GameRuntime() = default;
-
-    /**
-     * @brief Construct a runtime attached to an app.
-     *
-     * @param app Runtime app.
-     */
-    explicit GameRuntime(App &app) noexcept;
-
     GameRuntime(const GameRuntime &) = delete;
     GameRuntime &operator=(const GameRuntime &) = delete;
 
@@ -58,24 +47,6 @@ namespace vix::game
      * @brief Destroy the runtime.
      */
     ~GameRuntime() = default;
-
-    /**
-     * @brief Attach the runtime to an app.
-     *
-     * @param app Runtime app.
-     * @return Reference to this runtime.
-     */
-    GameRuntime &attach(App &app) noexcept;
-
-    /**
-     * @brief Detach the runtime from its app.
-     */
-    void detach() noexcept;
-
-    /**
-     * @brief Return true if the runtime is attached to an app.
-     */
-    [[nodiscard]] bool attached() const noexcept;
 
     /**
      * @brief Initialize runtime systems.
@@ -93,6 +64,11 @@ namespace vix::game
      * @brief Return true if the runtime is initialized.
      */
     [[nodiscard]] bool initialized() const noexcept;
+
+    /**
+     * @brief Return true while App is executing this runtime's loop.
+     */
+    [[nodiscard]] bool running() const noexcept;
 
     /**
      * @brief Begin a frame.
@@ -145,10 +121,23 @@ namespace vix::game
     [[nodiscard]] const GameContext &context() const noexcept;
 
   private:
+    friend class App;
+
+    /**
+     * @brief Construct the single runtime owned by an App.
+     */
+    explicit GameRuntime(App &app) noexcept;
+
+    /** @brief Mark frame processing as active for App::run(). */
+    void begin_run() noexcept;
+
+    /** @brief Mark frame processing as inactive after App::run(). */
+    void end_run() noexcept;
+
     /**
      * @brief Runtime context.
      */
-    GameContext context_{};
+    GameContext context_;
 
     /**
      * @brief Last runtime diagnostics snapshot.
@@ -159,6 +148,9 @@ namespace vix::game
      * @brief Whether init() completed.
      */
     bool initialized_{false};
+
+    /** Whether App is currently executing the loop. */
+    bool running_{false};
   };
 
 } // namespace vix::game

@@ -25,39 +25,24 @@ namespace vix::game
 {
   GameRuntime::GameRuntime(App &app) noexcept
       : context_(app),
-        initialized_(false)
+        initialized_(false),
+        running_(false)
   {
-  }
-
-  GameRuntime &GameRuntime::attach(App &app) noexcept
-  {
-    context_.attach(app);
-    return *this;
-  }
-
-  void GameRuntime::detach() noexcept
-  {
-    shutdown();
-    context_.detach();
-  }
-
-  bool GameRuntime::attached() const noexcept
-  {
-    return context_.attached();
   }
 
   GameBoolResult GameRuntime::init()
   {
     if (initialized_)
     {
-      return true;
-    }
-
-    if (!attached())
-    {
       return make_game_error(
           GameErrorCode::InvalidState,
-          "game runtime is not attached to an app");
+          "game runtime is already initialized");
+    }
+
+    auto context_result = context_.init();
+    if (!context_result)
+    {
+      return context_result.error();
     }
 
     initialized_ = true;
@@ -71,7 +56,8 @@ namespace vix::game
       return;
     }
 
-    context_.clear();
+    running_ = false;
+    context_.shutdown();
     initialized_ = false;
   }
 
@@ -80,9 +66,27 @@ namespace vix::game
     return initialized_;
   }
 
+  bool GameRuntime::running() const noexcept
+  {
+    return running_;
+  }
+
+  void GameRuntime::begin_run() noexcept
+  {
+    running_ = true;
+  }
+
+  void GameRuntime::end_run() noexcept
+  {
+    running_ = false;
+  }
+
   void GameRuntime::begin_frame(const Frame &frame)
   {
-    (void)frame;
+    if (!initialized_)
+    {
+      return;
+    }
 
     diagnostics_.frame_index = frame.index;
     diagnostics_.delta_ms = frame.delta_ms();
@@ -118,16 +122,31 @@ namespace vix::game
   }
   void GameRuntime::update(const Frame &frame)
   {
+    if (!initialized_)
+    {
+      return;
+    }
+
     context_.scenes().update(frame);
   }
 
   void GameRuntime::fixed_update(const Frame &frame)
   {
+    if (!initialized_)
+    {
+      return;
+    }
+
     context_.scenes().fixed_update(frame);
   }
 
   void GameRuntime::render(const Frame &frame)
   {
+    if (!initialized_)
+    {
+      return;
+    }
+
     (void)frame;
 
     auto &renderer2d = context_.renderer2d();
@@ -149,6 +168,11 @@ namespace vix::game
 
   void GameRuntime::end_frame(const Frame &frame)
   {
+    if (!initialized_)
+    {
+      return;
+    }
+
     (void)frame;
 
     diagnostics_.window_backend = context_.window().backend_name();

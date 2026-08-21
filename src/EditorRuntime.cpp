@@ -61,10 +61,13 @@ namespace vix::game
           "editor runtime is not attached to a game runtime");
     }
 
-    auto runtime_init = runtime_->init();
-    if (!runtime_init)
+    if (!runtime_->initialized())
     {
-      return runtime_init.error();
+      auto runtime_init = runtime_->init();
+      if (!runtime_init)
+      {
+        return runtime_init.error();
+      }
     }
 
     context_.enter_edit_mode();

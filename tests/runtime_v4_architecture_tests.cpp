@@ -146,9 +146,9 @@ TEST(GameRuntimeV4ArchitectureTests, RuntimeUpdatesActiveScene)
 {
   vix::game::App app;
 
-  vix::game::GameRuntime runtime(app);
+  auto &runtime = app.runtime();
 
-  auto init_result = runtime.init();
+  auto init_result = app.init();
   ASSERT_TRUE(init_result);
 
   auto scene_id = app.scenes().create<CountingScene>("main");
@@ -297,9 +297,9 @@ TEST(GameRuntimeV4ArchitectureTests, SceneHelpersExposeRuntimeContext)
 {
   vix::game::App app;
 
-  vix::game::GameRuntime runtime(app);
+  auto &runtime = app.runtime();
 
-  auto init_result = runtime.init();
+  auto init_result = app.init();
   ASSERT_TRUE(init_result);
 
   auto scene_id = app.scenes().create<HelperScene>("main");
@@ -323,9 +323,9 @@ TEST(GameRuntimeV4ArchitectureTests, SceneHelpersExposeRuntimeContext)
 TEST(GameRuntimeV4ArchitectureTests, EditorContextTracksSelectedEntity)
 {
   vix::game::App app;
-  vix::game::GameRuntime runtime(app);
+  auto &runtime = app.runtime();
 
-  auto init_result = runtime.init();
+  auto init_result = app.init();
   ASSERT_TRUE(init_result);
 
   vix::game::EditorContext editor(runtime.context());
@@ -369,9 +369,9 @@ TEST(GameRuntimeV4ArchitectureTests, RegistryStatsReportsRuntimeCounts)
 TEST(GameRuntimeV4ArchitectureTests, SceneRuntimeInspectReturnsSceneSnapshot)
 {
   vix::game::App app;
-  vix::game::GameRuntime runtime(app);
+  auto &runtime = app.runtime();
 
-  auto init_result = runtime.init();
+  auto init_result = app.init();
   ASSERT_TRUE(init_result);
 
   vix::game::SceneRuntime scenes(runtime.context());
@@ -432,27 +432,17 @@ TEST(GameRuntimeV4ArchitectureTests, AppConfigParsesWindowConfig)
 TEST(GameRuntimeV4ArchitectureTests, GameContextInstallsWindowAndRendererBackends)
 {
   vix::game::App app;
-  vix::game::GameRuntime runtime(app);
+  auto &runtime = app.runtime();
 
-  auto init_result = runtime.init();
+  auto init_result = app.init();
   ASSERT_TRUE(init_result);
 
   auto &context = runtime.context();
-
-  context
-      .set_window_backend(std::make_unique<vix::game::NullWindow>())
-      .set_renderer_backend(std::make_unique<vix::game::NullRenderer>());
 
   EXPECT_TRUE(context.window().has_backend());
   EXPECT_TRUE(context.renderer().has_backend());
   EXPECT_EQ(context.window().backend_name(), std::string("null"));
   EXPECT_EQ(context.renderer().backend_name(), std::string("null"));
-
-  auto opened = context.window().open(vix::game::WindowConfig::headless_config());
-  ASSERT_TRUE(opened);
-
-  auto renderer_init = context.renderer().init(context.window());
-  ASSERT_TRUE(renderer_init);
 
   EXPECT_TRUE(context.window().open());
   EXPECT_TRUE(context.renderer().initialized());
@@ -462,22 +452,10 @@ TEST(GameRuntimeV4ArchitectureTests, GameContextInstallsWindowAndRendererBackend
 TEST(GameRuntimeV4ArchitectureTests, RuntimeDiagnosticsReportsCoreState)
 {
   vix::game::App app;
-  vix::game::GameRuntime runtime(app);
+  auto &runtime = app.runtime();
 
-  auto init_result = runtime.init();
+  auto init_result = app.init();
   ASSERT_TRUE(init_result);
-
-  auto &context = runtime.context();
-
-  context
-      .set_window_backend(std::make_unique<vix::game::NullWindow>())
-      .set_renderer_backend(std::make_unique<vix::game::NullRenderer>());
-
-  auto opened = context.window().open(vix::game::WindowConfig::headless_config());
-  ASSERT_TRUE(opened);
-
-  auto renderer_init = context.renderer().init(context.window());
-  ASSERT_TRUE(renderer_init);
 
   auto scene = app.scenes().create<CountingScene>("main");
   ASSERT_TRUE(scene);
@@ -512,22 +490,10 @@ TEST(GameRuntimeV4ArchitectureTests, RuntimeDiagnosticsReportsCoreState)
 TEST(GameRuntimeV4ArchitectureTests, EditorRuntimeInspectsRuntimeScenesAndRegistry)
 {
   vix::game::App app;
-  vix::game::GameRuntime runtime(app);
+  auto &runtime = app.runtime();
 
-  auto init_result = runtime.init();
+  auto init_result = app.init();
   ASSERT_TRUE(init_result);
-
-  auto &context = runtime.context();
-
-  context
-      .set_window_backend(std::make_unique<vix::game::NullWindow>())
-      .set_renderer_backend(std::make_unique<vix::game::NullRenderer>());
-
-  auto opened = context.window().open(vix::game::WindowConfig::headless_config());
-  ASSERT_TRUE(opened);
-
-  auto renderer_init = context.renderer().init(context.window());
-  ASSERT_TRUE(renderer_init);
 
   auto scene = app.scenes().create<RegistryScene>("main");
   ASSERT_TRUE(scene);

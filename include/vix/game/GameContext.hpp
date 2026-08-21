@@ -37,7 +37,8 @@ namespace vix::game
   /**
    * @brief Runtime access point for game systems.
    *
-   * GameContext provides a stable way to access the main game systems without
+   * GameContext is owned by the canonical GameRuntime. It provides a stable
+   * way to access the main game systems without
    * passing many individual references around.
    *
    * It is designed for:
@@ -50,18 +51,6 @@ namespace vix::game
   class GameContext
   {
   public:
-    /**
-     * @brief Construct an empty context.
-     */
-    GameContext() = default;
-
-    /**
-     * @brief Construct a context attached to an app.
-     *
-     * @param app Runtime app.
-     */
-    explicit GameContext(App &app) noexcept;
-
     GameContext(const GameContext &) = delete;
     GameContext &operator=(const GameContext &) = delete;
 
@@ -69,24 +58,6 @@ namespace vix::game
      * @brief Destroy the context.
      */
     ~GameContext() = default;
-
-    /**
-     * @brief Attach the context to an app.
-     *
-     * @param app Runtime app.
-     * @return Reference to this context.
-     */
-    GameContext &attach(App &app) noexcept;
-
-    /**
-     * @brief Detach the context from its app.
-     */
-    void detach() noexcept;
-
-    /**
-     * @brief Return true if the context is attached to an app.
-     */
-    [[nodiscard]] bool attached() const noexcept;
 
     /**
      * @brief Return the app.
@@ -192,19 +163,21 @@ namespace vix::game
      * @brief Set the window backend used by the runtime window facade.
      *
      * @param backend Window backend implementation.
-     * @return Reference to this context.
+     * Configure this before App::init(). If omitted, a NullWindow is used.
+     * @return true on success, or a structured configuration error.
      */
-    GameContext &set_window_backend(
-        std::unique_ptr<WindowBackend> backend) noexcept;
+    [[nodiscard]] GameBoolResult set_window_backend(
+        std::unique_ptr<WindowBackend> backend);
 
     /**
      * @brief Set the renderer backend used by the runtime renderer facade.
      *
      * @param backend Renderer backend implementation.
-     * @return Reference to this context.
+     * Configure this before App::init(). If omitted, a NullRenderer is used.
+     * @return true on success, or a structured configuration error.
      */
-    GameContext &set_renderer_backend(
-        std::unique_ptr<RendererBackend> backend) noexcept;
+    [[nodiscard]] GameBoolResult set_renderer_backend(
+        std::unique_ptr<RendererBackend> backend);
 
     /**
      * @brief Begin a runtime frame.
@@ -223,7 +196,20 @@ namespace vix::game
      */
     void clear();
 
+    /** @brief Return true when window and renderer are initialized. */
+    [[nodiscard]] bool initialized() const noexcept;
+
   private:
+    friend class GameRuntime;
+
+    explicit GameContext(App &app) noexcept;
+
+    [[nodiscard]] GameBoolResult init();
+
+    void shutdown() noexcept;
+
+    void require_attached(const char *operation) const;
+
     /**
      * @brief Attached app.
      */
@@ -248,6 +234,9 @@ namespace vix::game
      * @brief Runtime 2D renderer facade.
      */
     Renderer2D renderer2d_{};
+
+    /** Whether the runtime backends completed initialization. */
+    bool initialized_{false};
   };
 
 } // namespace vix::game

@@ -16,11 +16,15 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include <vix/game/App.hpp>
 #include <vix/game/AppConfig.hpp>
 #include <vix/game/Frame.hpp>
 #include <vix/game/Scene.hpp>
 #include <vix/game/SceneManager.hpp>
+#include <vix/game/NullRenderer.hpp>
+#include <vix/game/NullWindow.hpp>
 
 namespace
 {
@@ -95,6 +99,49 @@ TEST(GameAppTests, AppRejectsConfigChangeAfterInitialization)
   auto result = app.set_config(config);
 
   EXPECT_FALSE(result);
+}
+
+TEST(GameAppTests, AppOwnsOneRuntimeAndRejectsDoubleInitialization)
+{
+  vix::game::App app;
+
+  EXPECT_EQ(&app.runtime(), &app.runtime());
+
+  auto first = app.init();
+  ASSERT_TRUE(first);
+
+  auto second = app.init();
+  EXPECT_FALSE(second);
+  EXPECT_TRUE(app.runtime().initialized());
+}
+
+TEST(GameAppTests, RuntimeInstallsDefaultsAndFreezesBackendConfiguration)
+{
+  vix::game::App app;
+  auto &context = app.runtime().context();
+
+  auto custom_window = context.set_window_backend(
+      std::make_unique<vix::game::NullWindow>());
+  ASSERT_TRUE(custom_window);
+
+  auto custom_renderer = context.set_renderer_backend(
+      std::make_unique<vix::game::NullRenderer>());
+  ASSERT_TRUE(custom_renderer);
+
+  auto init = app.init();
+  ASSERT_TRUE(init);
+  EXPECT_TRUE(context.initialized());
+  EXPECT_TRUE(context.window().open());
+  EXPECT_TRUE(context.renderer().initialized());
+
+  auto replacement = context.set_renderer_backend(
+      std::make_unique<vix::game::NullRenderer>());
+  EXPECT_FALSE(replacement);
+
+  app.shutdown();
+  EXPECT_FALSE(context.initialized());
+  EXPECT_FALSE(context.window().open());
+  EXPECT_FALSE(context.renderer().initialized());
 }
 
 TEST(GameAppTests, AppRunsRegisteredScene)

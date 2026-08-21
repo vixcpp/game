@@ -65,25 +65,21 @@ TEST(HeadlessRuntimeTests, AppRuntimeWorksWithNullWindowAndNullRenderer)
   config.window = vix::game::WindowConfig::headless_config();
 
   vix::game::App app(config);
-
-  auto init = app.init();
-  ASSERT_TRUE(init);
-
   auto &runtime = app.runtime();
   auto &context = runtime.context();
-
-  context.window().set_backend(std::make_unique<vix::game::NullWindow>());
-
-  auto opened = context.window().open(vix::game::WindowConfig::headless_config());
-  ASSERT_TRUE(opened);
 
   auto null_renderer = std::make_unique<vix::game::NullRenderer>();
   auto *raw_renderer = null_renderer.get();
 
-  context.renderer().set_backend(std::move(null_renderer));
+  auto window_backend = context.set_window_backend(
+      std::make_unique<vix::game::NullWindow>());
+  ASSERT_TRUE(window_backend);
 
-  auto renderer_init = context.renderer().init(context.window());
-  ASSERT_TRUE(renderer_init);
+  auto renderer_backend = context.set_renderer_backend(std::move(null_renderer));
+  ASSERT_TRUE(renderer_backend);
+
+  auto init = app.init();
+  ASSERT_TRUE(init);
 
   auto scene_id = app.scenes().create<HeadlessScene>("main");
   ASSERT_TRUE(scene_id);

@@ -16,6 +16,7 @@
 #ifndef VIX_GAME_APP_HPP
 #define VIX_GAME_APP_HPP
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
@@ -45,8 +46,9 @@ namespace vix::game
    * - assets
    * - background jobs
    *
-   * App does not provide rendering, windowing, audio, physics, or input in V1.
-   * It provides the foundation needed to build those systems on top.
+   * App owns the only GameRuntime associated with the application. It owns
+   * application services and drives the init() -> run() -> shutdown()
+   * lifecycle. Runtime-specific services are exposed through runtime().context().
    */
   class App
   {
@@ -74,7 +76,8 @@ namespace vix::game
     /**
      * @brief Initialize app systems.
      *
-     * This prepares the app before running the loop.
+     * This prepares the canonical runtime before running the loop. Calling
+     * init() more than once is an invalid state.
      *
      * @return true on success, or a structured error.
      */
@@ -197,7 +200,7 @@ namespace vix::game
     template <typename Fn>
     void on_update(Fn &&fn)
     {
-      loop_.set_update_callback(std::forward<Fn>(fn));
+      update_callback_ = std::forward<Fn>(fn);
     }
 
     /**
@@ -211,7 +214,7 @@ namespace vix::game
     template <typename Fn>
     void on_fixed_update(Fn &&fn)
     {
-      loop_.set_fixed_update_callback(std::forward<Fn>(fn));
+      fixed_update_callback_ = std::forward<Fn>(fn);
     }
 
     /**
@@ -241,9 +244,7 @@ namespace vix::game
     [[nodiscard]] const GameRuntime &runtime() const noexcept;
 
   private:
-    /**
-     * @brief Create owned subsystems.
-     */
+    /** @brief Create application-owned services during construction. */
     void create_systems();
 
     /**
@@ -281,7 +282,7 @@ namespace vix::game
     /**
      * @brief High-level game runtime coordinator.
      */
-    GameRuntime runtime_{};
+    GameRuntime runtime_;
 
     /**
      * @brief Scene manager.
@@ -317,6 +318,21 @@ namespace vix::game
      * @brief Whether shutdown() has already been executed.
      */
     bool shutdown_done_{false};
+
+    /** Whether App::run currently owns the execution loop. */
+    bool running_{false};
+
+    /** User callback run after active scene updates and before rendering. */
+    GameLoop::UpdateCallback update_callback_{};
+
+    /** User callback run after active scene fixed updates. */
+    GameLoop::FixedUpdateCallback fixed_update_callback_{};
+
+    /** Shutdown requested while the loop is active. */
+    bool shutdown_requested_{false};
+
+    /** AppStopping was dispatched for the current run. */
+    bool stopping_{false};
   };
 
 } // namespace vix::game

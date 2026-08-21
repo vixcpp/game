@@ -5,8 +5,8 @@ int main()
 {
   vix::game::App app;
 
-  vix::game::GameRuntime runtime(app);
-  auto init = runtime.init();
+  auto &runtime = app.runtime();
+  auto init = app.init();
   if (!init)
   {
     vix::print("runtime init failed:", init.error().message());

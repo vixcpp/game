@@ -54,26 +54,19 @@ int main()
 
   vix::game::App app(config);
 
-  auto init = app.init();
-  if (!init)
-  {
-    return 1;
-  }
-
   auto &context = app.runtime().context();
 
-  context
-      .set_window_backend(std::make_unique<vix::game::sdl::SDLWindow>())
-      .set_renderer_backend(std::make_unique<vix::game::sdl::SDLRenderer>());
-
-  auto opened = context.window().open(config.window);
-  if (!opened)
+  auto window_backend = context.set_window_backend(
+      std::make_unique<vix::game::sdl::SDLWindow>());
+  auto renderer_backend = context.set_renderer_backend(
+      std::make_unique<vix::game::sdl::SDLRenderer>());
+  if (!window_backend || !renderer_backend)
   {
     return 1;
   }
 
-  auto renderer_init = context.renderer().init(context.window());
-  if (!renderer_init)
+  auto init = app.init();
+  if (!init)
   {
     return 1;
   }
