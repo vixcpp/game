@@ -5,7 +5,9 @@ int main()
 {
   vix::game::AssetManager assets("assets");
   vix::game::JobSystem jobs;
-  vix::game::AsyncAssetLoader loader(assets, jobs);
+  vix::game::RuntimeDispatcher dispatcher;
+  dispatcher.bind_current_thread();
+  vix::game::AsyncAssetLoader loader(assets, jobs, dispatcher);
 
   auto handle = loader.load(
       "example.txt",
@@ -28,6 +30,14 @@ int main()
 
   handle.value().wait();
   handle.value().get();
+
+  auto drained = dispatcher.drain();
+  if (!drained)
+  {
+    vix::print("failed to process async completion:", drained.error().message());
+    jobs.shutdown();
+    return 1;
+  }
 
   jobs.shutdown();
 
