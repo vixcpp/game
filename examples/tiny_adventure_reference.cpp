@@ -1,5 +1,6 @@
 // A complete headless-capable reference game built only from vix/game
 // primitives. Gameplay-specific types deliberately live in this example.
+#include <iostream>
 #include <memory>
 
 #include <vix/game/App.hpp>
@@ -126,10 +127,33 @@ int main()
 {
   auto config = vix::game::AppConfig::defaults();
   config.headless = true;
-  config.asset_root = "examples/assets";
+  config.asset_root = "assets";
   vix::game::App app(config);
-  if (auto scene = app.scenes().create<TinyAdventureReferenceScene>("main"); !scene) return 1;
-  if (auto active = app.scenes().set_active("main"); !active) return 1;
+
+  if (auto initialized = app.init(); !initialized)
+  {
+    std::cerr << "game initialization failed: " << initialized.error().message() << '\n';
+    return 1;
+  }
+
+  if (auto scene = app.scenes().create<TinyAdventureReferenceScene>("main"); !scene)
+  {
+    std::cerr << "scene creation failed: " << scene.error().message() << '\n';
+    return 1;
+  }
+
+  if (auto active = app.scenes().set_active("main"); !active)
+  {
+    std::cerr << "scene activation failed: " << active.error().message() << '\n';
+    return 1;
+  }
+
   auto result = app.run();
-  return result ? 0 : 1;
+  if (!result)
+  {
+    std::cerr << "game run failed: " << result.error().message() << '\n';
+    return 1;
+  }
+
+  return 0;
 }
