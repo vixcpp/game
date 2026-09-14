@@ -482,12 +482,22 @@ endif()
 # Install headers
 # --------------------------------------------------------------------
 if (NOT (DEFINED VIX_UMBRELLA_BUILD AND VIX_UMBRELLA_BUILD))
-  install(DIRECTORY include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    FILES_MATCHING
-      PATTERN "*.hpp"
-      PATTERN "*.h"
-  )
+  if (VIX_GAME_ENABLE_SDL)
+    install(DIRECTORY include/
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+      FILES_MATCHING
+        PATTERN "*.hpp"
+        PATTERN "*.h"
+    )
+  else()
+    install(DIRECTORY include/
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+      FILES_MATCHING
+        PATTERN "*.hpp"
+        PATTERN "*.h"
+        REGEX "/backends/sdl(/|$)" EXCLUDE
+    )
+  endif()
 endif()
 
 # --------------------------------------------------------------------
